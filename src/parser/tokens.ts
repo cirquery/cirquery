@@ -127,13 +127,6 @@ export const Identifier = createToken({
   categories: IdentifierCat,
 });
 
-// QuotedIdentifier は Lexer レベルでは StringLiteral と同一パターン。
-// Parser の文脈（フィールドパスの位置）で識別子として扱います。
-export const QuotedIdentifier = createToken({
-  name: 'QuotedIdentifier',
-  pattern: StringLiteral.PATTERN!,
-  categories: IdentifierCat,
-});
 
 // ----- Token order (priority) -----
 // 重要: Chevrotain は配列順にマッチを試みます。
@@ -164,7 +157,7 @@ export const allTokens = [
   StringLiteral, NumberLiteral,
 
   // Identifiers
-  QuotedIdentifier, Identifier,
+  Identifier,
 ];
 
 // 将来の拡張（TODO）

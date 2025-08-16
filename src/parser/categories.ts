@@ -22,5 +22,8 @@ export const Separator = createToken({ name: 'Separator', categories: Token });
 export const Literal = createToken({ name: 'Literal', categories: Token });
 
 // 識別子（パスのセグメント）カテゴリ。
-// QuotedIdentifier もこのカテゴリに属します（Lexer段階では StringLiteral と同パターンを共有するため、Parser文脈で区別）。
+// 注意: クオート付識別子（"my field" など）は意味的にはIdentifierカテゴリですが、
+// Lexer段階ではStringLiteral型のトークンで受けており、Parser/Visitorで文脈的に区別して識別子として扱っています。
+// これは「Chevrotainは同一パターンで複数トークン型の共存を認めない」制約によるものです。
+// 詳細はparser.mdおよびdsl.md/4.2章の注記参照。QuotedIdentifier型の直接定義はありません。
 export const Identifier = createToken({ name: 'Identifier', categories: Token });
