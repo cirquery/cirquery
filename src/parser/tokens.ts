@@ -13,21 +13,25 @@ export const WhiteSpace = createToken({
 // ----- Keywords -----
 // 注意: 予約語は Identifier より先に allTokens に並べることで、誤って識別子にマッチするのを防ぎます。
 // start_chars_hint は任意です（アルファベット全般のため効果は限定的）。付与する場合は先頭文字を指定します。
-export const And = createToken({ name: 'And', pattern: /AND/i, categories: Keyword /*, start_chars_hint: ['A','a']*/ });
-export const Or = createToken({ name: 'Or', pattern: /OR/i, categories: Keyword /*, start_chars_hint: ['O','o']*/ });
-export const Not = createToken({ name: 'Not', pattern: /NOT/i, categories: Keyword /*, start_chars_hint: ['N','n']*/ });
+// 2. キーワード（Keywordカテゴリ）
+// 論理演算子
+// ★★★ patternを修正し、単語境界(\b)を追加する ★★★
+export const And = createToken({ name: 'And', pattern: /AND\b/i, categories: Keyword });
+export const Or = createToken({ name: 'Or', pattern: /OR\b/i, categories: Keyword });
+export const Not = createToken({ name: 'Not', pattern: /NOT\b/i, categories: Keyword });
+// 真偽値・nullリテラル
+export const True = createToken({ name: 'True', pattern: /true\b/i, categories: Keyword });
+export const False = createToken({ name: 'False', pattern: /false\b/i, categories: Keyword });
+export const Null = createToken({ name: 'Null', pattern: /null\b/i, categories: Keyword });
 
-export const True = createToken({ name: 'True', pattern: /true/i, categories: Keyword });
-export const False = createToken({ name: 'False', pattern: /false/i, categories: Keyword });
-export const Null = createToken({ name: 'Null', pattern: /null/i, categories: Keyword });
 
 // 関数名（将来的に in / matches などを追加する可能性があります）
-export const Contains = createToken({ name: 'Contains', pattern: /contains/i, categories: Keyword });
-export const StartsWith = createToken({ name: 'StartsWith', pattern: /startsWith/i, categories: Keyword });
-export const EndsWith = createToken({ name: 'EndsWith', pattern: /endsWith/i, categories: Keyword });
-export const Any = createToken({ name: 'Any', pattern: /any/i, categories: Keyword });
-export const All = createToken({ name: 'All', pattern: /all/i, categories: Keyword });
-export const None = createToken({ name: 'None', pattern: /none/i, categories: Keyword });
+export const Contains = createToken({ name: 'Contains', pattern: /contains\b/i, categories: Keyword });
+export const StartsWith = createToken({ name: 'StartsWith', pattern: /startsWith\b/i, categories: Keyword });
+export const EndsWith = createToken({ name: 'EndsWith', pattern: /endsWith\b/i, categories: Keyword });
+export const Any = createToken({ name: 'Any', pattern: /any\b/i, categories: Keyword });
+export const All = createToken({ name: 'All', pattern: /all\b/i, categories: Keyword });
+export const None = createToken({ name: 'None', pattern: /none\b/i, categories: Keyword });
 
 // ----- Operators & Separators -----
 // 複合演算子（2文字以上）を単一演算子より先に並べるのが重要。
@@ -102,7 +106,7 @@ export const Dot = createToken({
 });
 
 // ----- Literals -----
-// StringLiteral はエスケープシーケンスを許容。仕様は dsl-v0.1.1 に準拠。
+// StringLiteral はエスケープシーケンスを許容。仕様は dsl.md に準拠。
 // \uXXXX のみ対応（\u{...} は将来検討）。
 export const StringLiteral = createToken({
   name: 'StringLiteral',
@@ -121,12 +125,12 @@ export const NumberLiteral = createToken({
 // 注意: Identifier は予約語より後に並べること。
 // 正規表現ポリシー: 現在は末尾ハイフンを許容（/[a-zA-Z_][a-zA-Z0-9_-]*/）。
 // 仕様側で末尾ハイフンを禁止する場合は、/[a-zA-Z_][a-zA-Z0-9_]*(-[a-zA-Z0-9_]+)*/ 等へ変更。
+// 注意: キーワードとの衝突を避けるため、Lexerにはキーワードの後にこのトークンを渡す
 export const Identifier = createToken({
   name: 'Identifier',
   pattern: /[a-zA-Z_][a-zA-Z0-9_-]*/,
   categories: IdentifierCat,
 });
-
 
 // ----- Token order (priority) -----
 // 重要: Chevrotain は配列順にマッチを試みます。

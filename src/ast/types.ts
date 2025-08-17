@@ -91,7 +91,7 @@ export interface ComparisonExpression extends BaseNode {
 export interface TextShorthandExpression extends BaseNode {
   type: 'TextShorthandExpression';
   path: PathNode;
-  value: StringLiteralNode | ComparisonShorthand | ValueListExpression;
+  value: StringLiteralNode | NumberLiteralNode | ComparisonShorthand | ValueListExpression;
 }
 
 // 省略比較 > 20 等

@@ -36,10 +36,11 @@ Lexerは、入力文字列を意味のあるトークンの連続に分割しま
 | `NumberLiteral` | `Literal` | `-?\d+` | 数値。 |
 | `Identifier` | `Identifier` | `[a-zA-Z_]\w*` | フィールド名など。すべての`Keyword`の後に評価される。 |
 
->注:
->本DSLでは文法的には「QuotedIdentifier（例: "my field"）とStringLiteral（例: "値"）」を意味上区別しますが、
->Lexer（Chevrotain）の制約によって、これらはすべてStringLiteralトークンとして統一されます。
->ParserおよびVisitorで「フィールドパスか値か」という文脈で意味的に識別子か値かを区別します。
+> 注:
+> 本DSLでは文法的には「QuotedIdentifier（例: "my field"）とStringLiteral（例: "値"）」を意味上区別しますが、
+> Lexer（Chevrotain）の制約によって、これらはすべてStringLiteralトークンとして統一されます。
+> Parser/Visitorで「フィールドパスか値か」という文脈に基づいて意味的に区別します。
+> 先頭セグメントは Identifier 限定、Dot 以降のセグメントのみ QuotedIdentifier（= StringLiteral をパス文脈で解釈）を許容します（B案 Phase1）。
 
 #### **3.2 トークン定義コード**
 
@@ -145,9 +146,9 @@ export const allTokens = [
 
 　/*
   【実装注記】
-  - クオート付き識別子(QuotedIdentifier)はChevrotainの制約（同一パターン禁止）によりトークンとしては定義しません。
-  - ダブルクオート文字列は全てStringLiteralとして受けます。
+  ― 本DSLでは文法的には「QuotedIdentifier（例: "my field"）とStringLiteral（例: "値"）」を意味上区別しますが、Lexer（Chevrotain）の制約によって、これらはすべてStringLiteralトークンとして統一されます。  
   - フィールドパスの文脈で現れたStringLiteralは意味的にQuotedIdentifierとして（Visitorで）解釈・格納します。
+  - 先頭セグメントは Identifier 限定、Dot 以降のセグメントのみ QuotedIdentifier（= StringLiteral をパス文脈で解釈）を許容します（将来変更予定）。
 　*/
 ```
 
@@ -166,6 +167,7 @@ export const allTokens = [
       Lexer では **すべて `StringLiteral` トークンとして受け** ています。
     - **Chevrotainの仕様**（同一正規表現パターンのToken型は定義できない）により、`QuotedIdentifier`という名前のToken型は実装上存在しません。
     - **Parser・Visitorでは**、`fieldPath`など「フィールドパス文脈」で現れた`StringLiteral`を意味的にQuotedIdentifierと解釈し、パスの一部（segments）として格納します。
+    - フィールドパスの QuotedIdentifier は、B案 Phase1 として「先頭セグメントは不可」「Dot 以降のみ許容」とします。
     - 逆に、値の文脈で現れたものは通常の`StringLiteral`（値リテラル）として扱います。
     - **この「トークンとしては一元化し、文脈で意味を分ける実装」はChevrotainパーサーの制約に起因します（実装ドキュメントにもこの設計理由を明記）。**
 
@@ -199,19 +201,26 @@ Parserは、Lexerが生成したトークンストリームを解釈し、構文
   -   `notExpression`: `NOT` 演算子のための単項演算ルール。
 
 -   `atomicExpression`: `notExpression`から呼び出される、演算子の優先順位チェーンにおける末端の要素（アトム）を定義するルール。
+  - atomicExpression の分岐優先順は「group → call → literal（String/Number/True/False/Null）→ pathBased」とします。  
+  目的: 関数引数等の値文脈で現れる "..." を確実に literal として受け、path 文脈へ吸い込まないようにするため。
 -   `pathBasedExpression`: 曖昧性解決の核となるルール。 `fieldPath`で始まる式の可能性（比較式、コロン区切り式、truthyなパス）をすべて処理します。
+  - 起動条件は `atomicExpression` 側の `OR` 代替内の `GATE` で制御し、「先頭トークンが `Identifier` の場合のみ」呼び出すようにします。
 
 - 曖昧さのない括弧付きの式や関数呼び出しを定義。
   -   `callExpression`: `any(path, ...)`のような、明示的な関数呼び出しをパース。
   -   `groupExpression`: `(...)`のように括弧で囲まれた式をパース。
 
 - 文法の基本部品となるルール。
-  -   `fieldPath`: `author.name`のような、どっと区切りのフィールドパスをパースする基本ルール。
+  -   `fieldPath`: `author.name`のような、ドット区切りのフィールドパスをパースする基本ルール。
+    - fieldPath は B案 Phase1: 先頭は Identifier 限定、Dot 以降のセグメントで Identifier または StringLiteral（QuotedIdentifier）を許容します。
   -   `literal`: 文字列、数値、真偽値、nullといったリテラル値をパースする基本ルール。
   -   `valueList`: `("A", "B")` や `(>5, <13)` のような複合値リストをパース。
 
 #### 4.2 演算子の優先順位の実装
 Chevrotainでは、ルールの呼び出し順序によって演算子の優先順位を表現します。本パーサーでは、それに加えて左共通部分の括りだし（**Left Factoring**） という設計パターンを適用し、文法の曖昧性を解決します。
+- B案 Phase1 における曖昧性回避の要点:
+  - `atomicExpression` の `OR` 代替内で `GATE` を使い、「先頭が `Identifier` の場合のみ `pathBasedExpression` を起動」します。
+  - これにより、`contains(name, "gin")` 等の第2引数の "..." は `literal` として扱われ、`path` へ誤って吸い込まれません。
 
 - 優先順位:  
 `orExpression` (低) → `andExpression` → `notExpression` (高) → `atomicExpression` の順でルールを呼び出します。
@@ -248,11 +257,11 @@ CSTからASTへの変換には、**Visitorパターン**を採用します。Che
 | `orExpression` | `LogicalExpression` | 左辺を初期ノードとし、複数の`OR`節があれば、左結合で`LogicalExpression`をネストして構築します。`operator`は`'OR'`。 |
 | `andExpression` | `LogicalExpression` | `orExpression`と同様に、左結合で`LogicalExpression`を構築します。`operator`は`'AND'`。 |
 | `notExpression` | `UnaryExpression` | `NOT`トークンが存在する場合、後続の式を再帰的にvisitし、`argument`プロパティに設定します。`operator`は`'NOT'`。 |
-| `atomicExpression` | `Ast.Expression` | 子要素（`groupExpression`, `callExpression`, `pathBasedExpression`など）のいずれか一つをvisitし、その結果を返します。分岐の役割を果たします。|
+| `atomicExpression` | `Ast.Expression` | 子要素（`groupExpression`, `callExpression`, `pathBasedExpression`など）のいずれか一つをvisitし、その結果を返します。分岐の役割を果たします。分岐順は group → call → literal（String/Number/True/False/Null）→ pathBased。literal を先に評価することで、関数引数の "..." を確実に値として扱う。|
 | `pathBasedExpression` | `ComparisonExpression`または `TextShorthandExpression` または `PathNode`| `fieldPath`をvisitした後、後続のトークン（`comparisonOperator`, `Colon`）の有無に応じて、生成するASTノードを動的に決定します。後続がなければ`PathNode`を返します。 |
-| `callExpression` | `CallExpression` | 関数名（例: `any`）を`callee`に、引数を`arguments`配列にマッピングします。引数は再帰的にvisitします。 |
+| `callExpression` | `CallExpression` | 関数名（例: `any`）を`callee`に、引数を`args`配列にマッピングします。引数は children から arg1/arg2 を visit。引数は AST として (`PathNode` | `Expression`) を受ける。 |
 | `groupExpression` | `GroupExpression` | 括弧内の`expression`を再帰的にvisitし、`expression`プロパティに設定します。括弧自体のトークンはASTから除去します。 |
-| `fieldPath` | `PathNode` |  `Identifier`または`StringLiteral`（＝クオート識別子。実装注記参照）トークンイメージを抽出し、`segments`配列に格納。クオート除去処理もここで実施。 |
+| `fieldPath` | `PathNode` |  `Identifier`または`StringLiteral`（＝クオート識別子。実装注記参照）トークンイメージを抽出し、`segments`配列に格納。クオート除去処理もここで実施。先頭は `Identifier` のみ。Dot 以降のセグメントに限り `StringLiteral`（= QuotedIdentifier）も許容し、unquote した文字列を `segments` に格納する。 |
 | `literal` | 各種`LiteralNode` | 各リテラルトークンのイメージを、対応するJavaScriptのプリミティブ値に変換し、`value`プロパティに設定します。 |
 | `valueList` | `ValueListExpression` | 括弧内の各要素をvisitし、`values`配列に格納します。内部で`AND`/`OR`が使われていれば`operator`に設定します。 |
 
@@ -272,37 +281,35 @@ CSTからASTへの変換には、**Visitorパターン**を採用します。Che
  * OR演算を変換する
  * 例: A OR B OR C -> ((A OR B) OR C)
  */
-orExpression(ctx: any): Ast.Expression {
-  // 最初に左辺をvisit
-  let astNode: Ast.Expression = this.visit(ctx.andExpression[0]);
-
-  // 2つ目以降のOR節があれば、左結合でASTを構築
-  if (ctx.Or) {
-    ctx.Or.forEach((orToken: IToken, i: number) => {
-      const rightOperand = this.visit(ctx.andExpression[i + 1]);
-      astNode = {
-        type: 'LogicalExpression',
-        operator: 'OR',
-        left: astNode, // 前のループで構築したノードが左辺になる
-        right: rightOperand,
-      } as Ast.LogicalExpression;
-    });
-  }
-
-  return astNode;
-}
+    orExpression(ctx: any): AstExpression {
+      // 左結合の二項演算子を処理する共通パターン
+      let astNode = this.visit(ctx.lhs);
+      if (ctx.rhs) {
+        ctx.rhs.forEach((rhsNode: any) => {
+          const right = this.visit(rhsNode);
+          astNode = {
+            type: 'LogicalExpression',
+            operator: 'OR',
+            left: astNode,
+            right,
+          } as AstLogicalExpression;
+        });
+      }
+      return astNode;
+    }
 ```
 このサンプルは、CSTコンテキスト(`ctx`)から左右のオペランドを取り出し、再帰的に`LogicalExpression`ノードを組み立てる方法を示しています。
-
+- SUBRULE は CST 上で配列になるため、Visitor 側では常にインデックス`[0]`でアクセスする規約とする（例: `ctx.callExpression[0]`, `ctx.literal[0]`, `ctx.fieldPath[0]`）。
+- fieldPath の QuotedIdentifier は、Dot 以降でのみ `StringLiteral` を許可し、Visitor で `unquoteStringToken` を適用して `segments` に push する。
 
 ### **6. エラー回復戦略**
 
-`dsl-v0.1.1.md`の第12章に基づき、ユーザーフレンドリーなエラー報告を実現します。
+`dsl.md`の第12章に基づき、ユーザーフレンドリーなエラー報告を実現します。
 
 -   **エラー回復の有効化**: パーサーのコンフィグで `recoveryEnabled: true` を設定します。
 -   **再同期ポイント**: `RULE`内で `OR` を使う際、再同期が期待される場所（例: `AND`, `OR`, `RParen`, `Comma` の前）を考慮して文法を設計します。これにより、エラー後もパースを継続しやすくなります。
 -   **カスタムエラーメッセージ**: Chevrotainが投げる例外（`MismatchedTokenException`など）をキャッチし、より分かりやすいメッセージに変換するラッパーを用意します。
-
+- callArguments は現状 (expression, Comma, expression) 固定（2引数必須）であり、引数不足（例: any(items)）は構文エラー（ParseError）となる。将来的に 1 引数許容（正規化層でのエラー化）へ変更する場合は、callArguments を OPTIONAL 第2引数に緩め、normalize の arity チェックに責務を移す。
 ***
 
 ### **7. 実装ディレクトリ**
