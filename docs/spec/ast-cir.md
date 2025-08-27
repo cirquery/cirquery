@@ -204,6 +204,12 @@ interface QuantifiedNode extends CirNode {
 **設計注記**:  
 - CIRのPathは `type: 'Path'` を持ちます。これは合併型判定の安定化・AST/CIR境界の明確化・正規化時のensure系（ensurePath/ensureStringLiteral/ensureCirNode）の堅牢化のための設計判断です。
 
+- **評価オプションによる前処理**
+  - `TextNode`の比較は、評価時にオプション `ignoreCase` と `foldDiacritics` の前処理を受ける。`foldDiacritics=true` の場合、文字列は比較前に NFD 正規化を行い、U+0300–U+036F の結合ダイアクリティカルマークを除去する。  
+  - その後、`ignoreCase=true` の場合は `toLocaleLowerCase(locale)` を適用する。`toLocaleLowerCase` の結果はロケール依存であり、tr（トルコ語）などでは “I”→“ı” などの差異がある。
+
+
+
 ---
 
 ### 4. ASTからCIRへの変換イメージ
@@ -216,8 +222,8 @@ interface QuantifiedNode extends CirNode {
 | `name:("A", "B")` | `TextShorthandExpression` + `ValueListExpression` | `OrNode` (children: `TextNode` x 2) |
 | `NOT (A OR B)` | `UnaryExpression('NOT')` + `LogicalExpression('OR')` | `AndNode` (children: `NotNode(A)`, `NotNode(B)`) |
 
-サンプル内のCIRにおける path は、すべて `{ type: 'Path', segments: [...] }` 形式に統一してください。
-
+サンプル内のCIRにおける path は、すべて `{ type: 'Path', segments: [...] }` 形式に統一してください。  
+**注意**:テキスト演算の照合は `Evaluator` のオプションに依存するため、CIR の構造は不変でも、評価結果は `ignoreCase` と `foldDiacritics`、`locale` の組み合わせで変化し得る。
 ---
 
 ### 付録: 変更履歴（抜粋）

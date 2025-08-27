@@ -2,7 +2,8 @@
 
 ### **1. 目的**
 
-このドキュメントは、AST (Abstract Syntax Tree) から CIR (Canonical Intermediate Representation) への変換プロセス、すなわち「正規化」のルールと手順を定義します。
+このドキュメントは、AST (Abstract Syntax Tree) から CIR (Canonical Intermediate Representation) への変換プロセス、すなわち「正規化」のルールと手順を定義します。  
+評価時の文字列前処理（foldDiacritics/ignoreCase）は Evaluator の責務である。正規化された CIR は評価オプションにより比較結果が変わり得る。
 
 正規化の主な目的は以下の通りです。
 -   **省略形の展開**: `path:value` のような省略形を、`contains` のような明示的な演算に変換します。
@@ -83,7 +84,58 @@ ASTの `ValueListExpression` を、CIRの `AndNode` または `OrNode` に変換
 - 適用ポイントは「正規化の共通出口」で `Text`/`Comparison` に対して行い、`OR`/`AND` の `children` を組み立てる箇所でも子に適用する。論理ノード（`And`/`Or`/`Not`/`Quantified`）自体は対象外。
 - 例の `Path` 表現は `{ type:'Path', segments:[...] }` で統一（外側/内側とも）。
 
+- **補足**: 量化子のpredicateにおける配列要素参照（予約パス value）  
+量化子の `predicate` では、配列要素がプリミティブ（例: `string`）の場合、予約パス `value` を用いて要素そのものを参照できます。例: `any(tags, value: "fantasy")` は各要素に対して `Text[contains](value, "fantasy")` を適用することを意味します。また `any(tags, contains(value, "fan"))` のように関数形でも記述できます。オブジェクト配列の場合は、従来どおりフィールド名で参照します（例: `any(ingredients, name: "gin")`）  
+    - **文字列配列を検索（プリミティブ配列）** 
+        - データ例:
+            - tags: ["gin", "citrus", "bitter"]
+        - クエリ例:
+            - any(tags, value: "gin")
+                - 意味: 各タグ文字列そのものに contains を適用し、"gin" を含む要素が1つでもあれば真。
 
+            - any(tags, startsWith(value, "cit"))
+                - 意味: 各タグが "cit" で始まるかを確認（例では "citrus" が該当）。
+
+            - none(tags, endsWith(value, "er"))
+                - 意味: どのタグも "er" で終わらない（例では "bitter" が終端 "er" なので false）。
+
+        -  ポイント:   
+            - プリミティブ配列では、predicate 内にフィールド名が無いので value が「要素そのもの」を指す。
+
+    - **オブジェクト配列を検索（従来どおりフィールド参照）** 
+        - データ例:
+            - ingredients: [{ name: "gin", alcohol_content: 40 }, { name: "tonic", alcohol_content: 0 }]
+        - クエリ例:
+            - any(ingredients, name: "gin")
+                - 意味: 要素オブジェクトの name フィールドに contains を適用（"gin" を含む）。
+            - all(ingredients, alcohol_content >= 0)
+                - 意味: すべての要素で alcohol_content が 0 以上。
+        - ポイント:
+            オブジェクト配列はこれまで通りフィールド名で参照（value は不要）。
+
+    - **配列ショートハンドとの組み合わせ**
+        - ショートハンド:
+            - ingredients.name: "gin"
+
+        - ルールCの展開（概念図）:
+            - any(ingredients, name: "gin")
+
+        - プリミティブ配列の場合のショートハンド（比較のため）:
+
+            - tags.value: "gin" と等価な表現は any(tags, value: "gin")（ショートハンドを採るなら tags: "gin" ではなく value を明示）。
+
+    - **注意:**  
+    プリミティブ配列でドット記法は使わないため、tags.value のような表現は推奨しない。量化子の predicate 内で value を使うのが正しい書き方。
+
+    - **よくある誤りと修正**
+        - 誤: any(tags, name: "gin")
+            - 理由: tags は string[] で name フィールドが存在しない。
+            - 正: any(tags, value: "gin") または any(tags, contains(value, "gin"))。
+
+        - 誤: any(tags, contains(name, "gi"))
+            - 正: any(tags, contains(value, "gi"))。
+
+- TextNode の評価は、オプション foldDiacritics と ignoreCase により前処理されるが、ルールは AST→CIR の変換には影響を与えない（CIR 構造は不変）。
 
 #### **ルールD: NOTの押し下げ（否定正規形）**
 
@@ -108,6 +160,8 @@ ASTの `ValueListExpression` を、CIRの `AndNode` または `OrNode` に変換
     -   `NOT contains(name, "ジン")` は、CIR上では `NotNode` で `TextNode` をラップしたままにします。
     -   **CIR**: `{ type: 'Not', child: { type: 'Text', op: 'contains', ... } }`
 
+    - **補足**:テキスト演算の否定は v0.1 では Not(Text) を保持するルールのため、Evaluatorでの`foldDiacritics`/`ignoreCase` の適用は Not の内側の Text 評価で実施される（比較前処理の適用順序は foldDiacritics→ignoreCase）
+
 #### **ルールE: 構造の平坦化**
 
 正規化の最後に、不要なネスト構造を平坦化し、CIRをよりシンプルにします。
@@ -116,7 +170,7 @@ ASTの `ValueListExpression` を、CIRの `AndNode` または `OrNode` に変換
 -   **変換後**: `{ type: 'And', children: [ A, B, C ] }`
 
 
-#### **ルールF**: Truthyな式の正規化（補足）
+#### **ルールF: Truthyな式の正規化（補足）**
 
 - Path単体は、存在判定に相当する比較へ正規化します。  
   CIR: `{ type: 'Comparison', path: { type: 'Path', segments:[...] }, op: 'neq', value: { type: 'NullLiteral' } }`
