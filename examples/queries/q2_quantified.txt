@@ -1,0 +1,1 @@
+ingredients.name: "gin" AND ingredients.alcohol_content > 38

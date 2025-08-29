@@ -57,18 +57,18 @@ ASTの `ValueListExpression` を、CIRの `AndNode` または `OrNode` に変換
     -   **AST**: `{ type: 'ValueListExpression', values: [ ... ], operator: 'AND' }`
     -   **CIR**: `{ type: 'And', children: [ ... ] }`
 
-**注記**: 現行文法では `valueList` は1要素以上必須（空の () はパースエラー）。空リストの正規化エラー検証は不要。
+**注記**: 現行文法では `valueList` は1要素以上必須（空の () はパースエラー）。このため空リストに関するエラー検証はパーサで行われ、正規化層での追加検証は不要です。
 
 #### **ルールC: 配列ショートハンドの展開**
 
-フィールドパスが複数のセグメントで構成される場合（例: `ingredients.name`）、その操作を明示的な `QuantifiedNode` に正規化します。これは、ユーザーが`any()`を明示的に書かなくても、ドット記法（例: ingredients.name）で配列内オブジェクトのフィールドを検索できる、直感的なショートハンドを提供するための実装です。
+フィールドパスが複数のセグメントで構成される場合（例: `ingredients.name`）、その操作を明示的な `QuantifiedNode` に正規化します。これは、ユーザーが`any()`を明示的に書かなくても、ドット記法（例: `ingredients.name`）で配列内オブジェクトのフィールドを検索できる、直感的なショートハンドを提供するための実装です。
 
 -   **対象**: CIRに変換された後の `TextNode` や `ComparisonNode` が持つパス構造。
 -   **トリガー条件**: パスのセグメントが2つ以上存在する場合（例: `['ingredients', 'name']`）。
 
 -   **変換前 (AST)**: `ingredients.name:"ジン"`
 -   **初期CIR**: `{ type: 'Text', path: {segments:['ingredients', 'name']}, op: 'contains', value: ... }`
--   **正規化後CIR**: パスの最初のセグメントを QuantifiedNode の path とし、残りのパスを持つ条件を inner に設定します。
+-   **正規化後CIR**: パスの最初のセグメントを `QuantifiedNode` の `path` とし、残りのパスを持つ条件を `inner` に設定します。
     ```json
     {
         "type": "Quantified",
@@ -80,9 +80,9 @@ ASTの `ValueListExpression` を、CIRの `AndNode` または `OrNode` に変換
 
 > **実装注記**: この変換ロジックは、正規化プロセスの後半で適用することを推奨します。まずASTから基本的なCIRノード（`TextNode`や`ComparisonNode`）を生成し、その後、そのノードが持つ`path`を検査して、必要であれば`QuantifiedNode`でラップするという2段階の処理が考えられます。  
 >この変換は**純粋に構文的なもの**であり、対象フィールドが実際に配列かどうかを知る必要はありません。この抽象化は、後段の`Evaluator`や`Adapter`が「単一オブジェクトを要素数1の配列とみなす」などの戦略で吸収します。これにより、正規化処理はデータ構造に依存しない、高速で単純な変換であり続けることができます。
-- 本実装では単段ラップ: `segments=[head, ...tail]` のとき、`Quantified(any).path=[head]`、`predicate` の `path=[tail]` とする。多段ラップは v0.1 の対象外。
-- 適用ポイントは「正規化の共通出口」で `Text`/`Comparison` に対して行い、`OR`/`AND` の `children` を組み立てる箇所でも子に適用する。論理ノード（`And`/`Or`/`Not`/`Quantified`）自体は対象外。
-- 例の `Path` 表現は `{ type:'Path', segments:[...] }` で統一（外側/内側とも）。
+- 本実装では単段ラップ: `segments=[head, ...tail]` の場合に限り、`Quantified(any).path=[head]`とし、`predicate` 側で `path=[tail]` を保持します（多段ラップは v0.1 の対象外）。
+- 適用ポイントは「正規化の共通出口」および`OR`/`AND` の `children` 構築時で、 `Text`/`Comparison` のみに適用します（（`And`/`Or`/`Not`/`Quantified`）自体は対象外）。これにより、配列ショートハンドは常に末端条件に対して一貫して適用されます。
+- `Path` 表現は `{ type:'Path', segments:[...] }` に統一します（外側/内側とも）。
 
 - **補足**: 量化子のpredicateにおける配列要素参照（予約パス value）  
 量化子の `predicate` では、配列要素がプリミティブ（例: `string`）の場合、予約パス `value` を用いて要素そのものを参照できます。例: `any(tags, value: "fantasy")` は各要素に対して `Text[contains](value, "fantasy")` を適用することを意味します。また `any(tags, contains(value, "fan"))` のように関数形でも記述できます。オブジェクト配列の場合は、従来どおりフィールド名で参照します（例: `any(ingredients, name: "gin")`）  
