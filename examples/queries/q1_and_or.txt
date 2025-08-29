@@ -1,0 +1,1 @@
+(category: "Spirits" AND year >= 1965) OR category: "Cocktail"

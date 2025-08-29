@@ -1,0 +1,1 @@
+any(tags, value: "gin") AND NOT any(tags, value: "water")

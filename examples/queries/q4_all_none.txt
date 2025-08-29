@@ -1,0 +1,1 @@
+all(ingredients, alcohol_content >= 0) AND none(ingredients, name: "whisky")
