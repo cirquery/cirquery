@@ -43,6 +43,36 @@
 - --ignore-case と --locale を併用すると、テキスト評価で大小無視かつロケール依存の小文字化を行います（例: --ignore-case --locale=tr）。
 - このスクリプトは lowdb は使わず、JSON を直接読み込んでフィルタします。lowdb を使う統合検証は test/integration/lowdb.e2e.test.ts を参照してください。
 
+### Windows/PowerShell での実行
+
+- 例1: クエリファイルを実行して結果を表示
+  npx tsx ./src/cli/cirquery.ts --data ./examples/data/cocktails.json --query-file ./examples/queries/q3_value_reserved.txt --print result
+
+- 例2: 標準入力からDSLを渡して結果を表示
+  'any(tags, value: "gin")' | npx tsx ./src/cli/cirquery.ts --data ./examples/data/cocktails.json --print result
+
+- 例3: CIRを表示
+  npx tsx ./src/cli/cirquery.ts --data ./examples/data/cocktails.json --query 'ingredients.alcohol_content > 38' --print cir
+
+注:
+- 文字列クオートは '...'(単引用符) を推奨します。内部に " を含める場合は \" としてください。
+
+
+### REPL の起動（PowerShell）
+
+REPL は 1行のDSLを対話評価します。:q で終了、:mode / :ignore / :locale で設定変更できます。
+
+- 一時的に環境変数を設定して起動（現在のセッションのみ）
+  $env:CIRQUERY_DATA = (Resolve-Path .\\examples\\data\\cocktails.json); npx tsx ./src/cli/cirquery.ts repl 
+
+REPLコマンド:
+- :mode result|ast|cir    出力モードの切替(resultは検索結果、astはクエリの解析結果、cirはクエリの中間表現を出力)
+- :ignore on|off          テキストの大文字小文字無視
+- :locale <bcp47>         ロケール設定（例: tr, fr。空入力で解除）
+- :q                      終了
+
+- 例1:
+  name: "Gin" AND  year <2000
 ---
 
 ## クエリ例と意味・期待結果
