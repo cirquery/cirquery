@@ -14,6 +14,24 @@ lib/
 # テストカバレッジ結果
 coverage/
 
+# caches
+.nyc_output/
+.turbo/
+.cache/
+
+# logs
+yarn-error.log*
+pnpm-debug.log*
+
+# temp
+tmp/
+test/tmp/
+examples/tmp/
+
+# IDE
+.idea/
+
+
 # 環境変数ファイル（念のため）
 .env
 .env.local
@@ -33,6 +51,5 @@ Thumbs.db
 # docsなどのアーカイブ
 archive/
 
-# 開発メモ
-devplan.md
-dev-status.md
+# internal docs (confidential / WIP)
+docs/internal/
