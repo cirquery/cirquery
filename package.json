@@ -1,19 +1,37 @@
 {
   "name": "cirquery",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Core Common/Intermediate Representation for transforming human-friendly query DSLs to backend adapters.",
-  "main": "index.js",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist/*"
+  ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsup src/index.ts --format cjs,esm --dts --sourcemap --clean --out-dir dist",
+    "prepublishOnly": "npm run typecheck && npm run build",
     "test": "vitest",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write src"
   },
-  "keywords": [],
+  "repository": { "type": "git", "url": "git+https://github.com/cirquery/cirquery.git" },
+  "bugs": { "url": "https://github.com/cirquery/cirquery/issues" },
+  "homepage": "https://github.com/cirquery/cirquery#readme",
+  "keywords": ["query","dsl","parser","cir","normalization"],
   "author": "",
-  "license": "ISC",
-  "type": "module",
+  "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@types/node": "^24.3.0",
