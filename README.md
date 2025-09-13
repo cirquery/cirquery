@@ -181,7 +181,7 @@ E2E テストは `examples/` 配下のデータとクエリに依存します。
 実行:
 - 依存インストール: `npm ci`
 - 全テスト: `npm test`
-- 特定のE2Eのみ: `vitest run test/integration/lowdb.e2e.test.ts`
+- 特定のE2Eのみ: `vitest run test/integration/sqlite.e2e.test.ts`
 
 注意:
 - examples のデータやクエリを変更した場合、E2Eの期待結果も更新が必要です。

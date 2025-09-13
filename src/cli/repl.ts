@@ -1,3 +1,4 @@
+/// <reference types="node" />
 /**
  * cirquery REPL (簡易)
  *
@@ -17,11 +18,11 @@
  *   :locale <bcp47> ロケール設定（例: tr, fr, 空でクリア）
  */
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import process from 'node:process';
-import readline from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
+import fs from 'fs/promises'; //node:fs/promises
+import path from 'path'; //node:path
+import process from 'process'; //node:process
+import readline from 'readline/promises'; //node:readline/promises
+import { stdin as input, stdout as output } from 'process'; //node:process
 import { parse } from '../parser/index.ts';
 import { normalize } from '../cir/normalize.ts';
 import { buildPredicate } from '../cir/evaluator.ts';

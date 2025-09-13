@@ -105,6 +105,14 @@ export const Dot = createToken({
   start_chars_hint: ['.'],
 });
 
+// ----- EOF -----
+// 将来の保守性向上のため、入力終端を一級トークンとして扱う。
+// 注意: allTokens の末尾に配置する。
+export const Eof = createToken({
+  name: 'Eof',
+  pattern: Lexer.NA, // Chevrotainでは実EOFは内部で扱われるため、センチネル・トークン（終端）として定義のみ行う
+});
+
 // ----- Literals -----
 // StringLiteral はエスケープシーケンスを許容。仕様は dsl.md に準拠。
 // \uXXXX のみ対応（\u{...} は将来検討）。
@@ -113,6 +121,19 @@ export const StringLiteral = createToken({
   pattern: /"(:?[^\\"]|\\(:?[bfnrtv"\\/]|u[0-9a-fA-F]{4}))*"/,
   categories: Literal,
 });
+/*
+export const StringLiteral = createToken({
+  name: 'StringLiteral',
+  // "..." または '...' のどちらかを許容する。
+  // どちらのブランチも同等のエスケープ集合:
+  //   \b \f \n \r \t \v、引用符自身（\" / \\'）、スラッシュ \\/、ユニコード \uXXXX
+  pattern: /"(?:[^\\"]|\\(?:[bfnrtv"\\/]|u[0-9a-fA-F]{4}))*"|'(?:[^\\']|\\(?:[bfnrtv'\\/]|u[0-9a-fA-F]{4}))*'/,
+  categories: Literal,
+  // 任意: 先頭ヒントでパフォーマンス補助
+  start_chars_hint: ['"', "'"],
+});
+*/
+
 
 // NumberLiteral は整数/小数/指数をサポート。
 export const NumberLiteral = createToken({
@@ -162,7 +183,14 @@ export const allTokens = [
 
   // Identifiers
   Identifier,
+
+  // EOF sentinel (末尾)
+  Eof,
 ];
+
+// 境界（区切り）トークン集合をエクスポートして、parser 側のガードを集約管理できるようにする。
+// 例: pathBasedExpression での次トークンチェックに使用。
+export const BOUNDARY_TOKENS = [Or, And, RParen, Comma, Eof] as const;
 
 // 将来の拡張（TODO）
 // - 予約語: in, matches, regex 等を追加する場合は Keyword セクションに追記。

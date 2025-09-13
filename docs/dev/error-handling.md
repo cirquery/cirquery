@@ -18,14 +18,18 @@
   - 対象: トークナイズ/構文解析に失敗した入力
   - 含める情報: message, code, range(開始/終了), token周辺のスニペット（可能なら）
   - 発生レイヤ: parser
+  - 実装方針: 構文規則内での独自エラー発火（手動 LA → 直 throw）は原則行わず、構文エラーの一次判定はパーサ標準機構に委ねる。公開API境界（parse 関数）で標準例外を型付き ParseError に「最小限に正規化」して再スローする（詳細は「Parser の実装方針」参照）。
+
 - NormalizeError
   - 対象: AST→CIR 変換時の仕様不整合・未対応構造
   - 含める情報: message, code, ノード種別, 断片の文字列表現
   - 発生レイヤ: normalize
+
 - EvaluationError
   - 対象: CIRの評価時に発生する実行上の不整合（型不一致・不正な演算子適用など）
   - 含める情報: message, code, 演算子/オペランド概要
   - 発生レイヤ: evaluator
+
 - AdapterError（サンプル/外部）
   - 対象: アダプタ側の生成・実行失敗
   - 含める情報: message, code, 変換対象の要約
@@ -42,7 +46,10 @@
   - KIND: 失敗原因の一般名（UNEXPECTED_TOKEN, INVALID_RANGE, UNSUPPORTED_OPERATOR など）
 - 安定性
   - コードは後方互換を重視し、リネームが必要な場合は旧コードをエイリアスとして一定期間併存させる。
-  
+- 開発Phase1（V0.1.0) における Parser のコードの最小実装:
+  - 既定は `E_PARSE_GENERIC`
+  - メッセージ先頭が “Unexpected token” と判別できる場合のみ `E_PARSE_UNEXPECTED_TOKEN`
+  - それ以外の細分類は Phase2 以降の段階導入で扱う
 
 ## 例外か戻り値か（方針）
 
@@ -70,20 +77,34 @@
 - CLIやアダプタの例（参考）
   - 例外→ユーザー向け短文 + 詳細はデバッグフラグで出力
 
+## Parser の実装方針
+
+- 規則の記述は宣言的API（OR/ALT/CONSUME）を優先
+  - GATE/LA は必要最小限に抑え、副作用を持たせない（grammar recording phase への干渉回避）
+  - 未閉括弧や期待トークン不一致などは、標準の CONSUME 失敗や期待列挙メッセージに委ねる
+- 規則内での独自エラー発火（手動 LA → 直 throw）は原則禁止
+  - 録音位相での実行や座標不定（NaN）を招くリスクがあるため
+- 公開API境界（parse関数）での最小正規化
+  - 標準例外の第一文を抽出し、型付き ParseError に包んで再スロー
+  - code は基本 `E_PARSE_GENERIC`、第一文に “Unexpected token” を含む場合のみ `E_PARSE_UNEXPECTED_TOKEN`
+  - 位置/スニペットは取得できる範囲で付与（全面対応は Phase2 以降）
+
 ## 具体例
 
 - 例外型
 ```
 export class ParseError extends Error {
-  code = 'E_PARSE_UNEXPECTED_TOKEN' as const;
+  code:'E_PARSE_GENERIC' | 'E_PARSE_UNEXPECTED_TOKEN';
   constructor(
     message: string,
     public readonly line?: number,
     public readonly column?: number,
     public readonly snippet?: string,
+    code: 'E_PARSE_GENERIC' | 'E_PARSE_UNEXPECTED_TOKEN' = 'E_PARSE_GENERIC'
   ) {
     super(message);
     this.name = 'ParseError';
+    this.code = cdoe;
   }
 }
 
@@ -103,22 +124,26 @@ export class EvaluationError extends Error {
   }
 }
 ```
+- 例外境界と公開APIの関係（Parser）
 
-- 例外の投げ方（parser）
-```
-function failUnexpected(token: Token, expected: string) {
-  const { line, column } = token;
-  const msg = `Unexpected token '${token.image}' at ${line}:${column}. Expected ${expected}.`;
-  throw new ParseError(msg, line, column, token.image);
-}
-```
+  - 公開API（cirqueryのエクスポート関数）:
+    - 例: `parse(input: string)`, `normalize(ast)`, `evaluate(cir, data)` は外部から直接呼ばれる“契約”の境界です。
+    - 下位レイヤ（Lexer/Parserエンジン）の生エラーはこの境界で cirquery の型付き例外に正規化して再スローします。
+
+  - 最小正規化（Parserの方針）:
+    - 構文規則内では独自throwを行わず、Chevrotainの標準エラーに委ねます（宣言的な OR/ALT/CONSUMEを優先）。
+    - `parse` 関数の出口で、標準エラーの第一文を抽出し、可能なら位置情報（line/column/snippet）を付与して `ParseError` に包み直します。
+    - エラーコードは Phase1 では最小構成:
+      - 既定: `E_PARSE_GENERIC`
+      - メッセージ第一文に “Unexpected token” が含まれる場合のみ: `E_PARSE_UNEXPECTED_TOKEN`
+
 
 - 例外境界（呼び出し側の一例）
 ```
 try {
-  const { ast } = parse(input);
-  const cir = normalize(ast);
-  const ok = evaluate(cir, data);
+  const { ast } = parse(input); // 公開API: parse が境界で ParseError に正規化してくる
+  const cir = normalize(ast); // 公開API: NormalizeError を投げうる
+  const ok = evaluate(cir, data); // 公開API: EvaluationError を投げうる
   // …
 } catch (e) {
   if (e instanceof ParseError) {
@@ -134,11 +159,23 @@ try {
 }
 ```
 
+### 実装メモ（Parser内部 vs 公開API）
+- Parser内部（規則内）:
+  - NG: `this.LA(1)` を多用して独自 `throw` を行う（録音位相で副作用が走る恐れがあるため）
+  - OK: `OR/ALT/CONSUME` による宣言的記述。未閉括弧や期待外は標準のエラーに任せる
+- 公開API `parse` の出口:
+  - 標準例外を受けて、`ParseError` に包み直す（第一文＋位置、コードは Generic/Unexpected のみ）
+  - 呼び出し側は `instanceof ParseError` と `e.code` に依存できる
+
+
+
 ## テスト方針（エラー編）
 
 - parser
-  - 不正トークン/未閉括弧/未知の演算子で ParseError を投げる
-  - 位置情報（line/column）が概ね正しい（厳密一致にこだわり過ぎない）
+  - 代表ケース 2 件に限定
+    - “Unexpected token …” が出るケース → `ParseError` かつ `code === 'E_PARSE_UNEXPECTED_TOKEN'`
+    - その他の失敗（未閉括弧など） → `ParseError` かつ `code === 'E_PARSE_GENERIC'`
+  - メッセージは第一文の前方一致のみ検証（完全一致はしない）
 - normalize
   - 未対応ノード/不整合構造で NormalizeError を投げる
 - evaluator

@@ -1,7 +1,6 @@
 // src/parser/parser.ts
 // 目的: tokens.ts のトークンを用いてCSTを生成するChevrotainパーサーを提供。
 // 参照: docs/design/parser.md #4 文法設計, #3.2 トークン定義コード, #3.3 補足
-
 import { CstParser } from 'chevrotain';
 import {
   allTokens,
@@ -32,7 +31,6 @@ import {
   All,
   None,
 } from './tokens.ts';
-
 // パーサー本体
 export class DslParser extends CstParser {
   constructor() {
@@ -42,12 +40,10 @@ export class DslParser extends CstParser {
     });
     this.performSelfAnalysis();
   }
-
   // トップレベル
   public expression = this.RULE('expression', () => {
     this.SUBRULE(this.orExpression);
   });
-
   // ORは最も低い優先順位。左結合。
   public orExpression = this.RULE('orExpression', () => {
     this.SUBRULE(this.andExpression, { LABEL: 'lhs' });
@@ -56,7 +52,6 @@ export class DslParser extends CstParser {
       this.SUBRULE2(this.andExpression, { LABEL: 'rhs' });
     });
   });
-
   // AND は OR より高い。左結合。
   public andExpression = this.RULE('andExpression', () => {
     this.SUBRULE(this.notExpression, { LABEL: 'lhs' });
@@ -65,7 +60,6 @@ export class DslParser extends CstParser {
       this.SUBRULE2(this.notExpression, { LABEL: 'rhs' });
     });
   });
-
   // NOT は単項。NOT > AND > OR の優先順位
   public notExpression = this.RULE('notExpression', () => {
     this.OR([
@@ -82,20 +76,17 @@ export class DslParser extends CstParser {
       },
     ]);
   });
-
   // ★★★ 最も重要な変更箇所 ★★★
   // 曖昧さを解決するため、アトミックな（＝それ以上分解できない）要素を定義  // 曖昧性解決戦略:
   // 'path > 10' と 'path' のような共通の接頭辞を持つルールが競合するため、
   // 左共通部分の括りだし（Left Factoring）を適用する。
   // - atomic: group / call / literal / pathBased（この順）
   // - literal に StringLiteral を含める（関数引数の "x" を確実に値として受ける）
-
   public atomicExpression = this.RULE('atomicExpression', () => {
     this.OR([
       // 1. 括弧や、特定のキーワードで始まるルールは曖昧さがない
       { ALT: () => this.SUBRULE(this.groupExpression) },
       { ALT: () => this.SUBRULE(this.callExpression) },
-
       {
         ALT: () => {
           this.OR2([
@@ -107,16 +98,11 @@ export class DslParser extends CstParser {
           ]);
         },
       },
-    // ここでのみ GATE を使う: 先頭トークンが Identifier の場合に限り pathBasedExpression を起動
     {
-      GATE: () => this.LA(1).tokenType === Identifier,
       ALT: () => this.SUBRULE(this.pathBasedExpression),
     },
   ]);
 });
-
-
-
   // pathで始まる式の曖昧さを解決するための専用ルール（GATEで呼び出し元が制御される）
   /**
  * pathで始まる式のCSTノードをASTに変換する。
@@ -127,27 +113,16 @@ export class DslParser extends CstParser {
    // - 先頭が Identifier のときだけ pathBased を起動（GATE）
   // - fieldPath は 先頭Identifier限定、Dot以降は Identifier | StringLiteral を許容
   public pathBasedExpression = this.RULE('pathBasedExpression', () => {
-
     this.SUBRULE(this.fieldPath);
     this.OPTION(() => {
       this.OR([
         {
-          GATE: () =>
-            [
-              Equals,
-              NotEquals,
-              GreaterThan,
-              GreaterThanOrEqual,
-              LessThan,
-              LessThanOrEqual,
-            ].includes(this.LA(1).tokenType),
           ALT: () => {
             this.SUBRULE(this.comparisonOperator);
             this.SUBRULE(this.literal);
           },
         },
-        {
-          GATE: () => this.LA(1).tokenType === Colon,
+        {          
           ALT: () => {
             this.CONSUME(Colon);
             this.OR2([
@@ -161,34 +136,28 @@ export class DslParser extends CstParser {
     });
   });
 
-    // 比較演算子をまとめたヘルパールール
-    public comparisonOperator = this.RULE('comparisonOperator', () => {
-        this.OR([
-            { ALT: () => this.CONSUME(Equals, { LABEL: "operator" }) },
-            { ALT: () => this.CONSUME(NotEquals, { LABEL: "operator" }) },
-            { ALT: () => this.CONSUME(GreaterThanOrEqual, { LABEL: "operator" }) },
-            { ALT: () => this.CONSUME(LessThanOrEqual, { LABEL: "operator" }) },
-            { ALT: () => this.CONSUME(GreaterThan, { LABEL: "operator" }) },
-            { ALT: () => this.CONSUME(LessThan, { LABEL: "operator" }) },
-          ]);
-    });
-
-
+  // 比較演算子をまとめたヘルパールール
+  public comparisonOperator = this.RULE('comparisonOperator', () => {
+    this.OR([
+        { ALT: () => this.CONSUME(Equals, { LABEL: "operator" }) },
+        { ALT: () => this.CONSUME(NotEquals, { LABEL: "operator" }) },
+        { ALT: () => this.CONSUME(GreaterThanOrEqual, { LABEL: "operator" }) },
+        { ALT: () => this.CONSUME(LessThanOrEqual, { LABEL: "operator" }) },
+        { ALT: () => this.CONSUME(GreaterThan, { LABEL: "operator" }) },
+        { ALT: () => this.CONSUME(LessThan, { LABEL: "operator" }) },
+    ]);
+  });
   // ( expr )
   public groupExpression = this.RULE('groupExpression', () => {
     this.CONSUME(LParen);
     this.SUBRULE(this.expression);
     this.CONSUME(RParen);
   });
-
-
   // > 10, <= 5 など（比較記号 + リテラル）
   public comparisonShorthand = this.RULE('comparisonShorthand', () => {
     this.SUBRULE(this.comparisonOperator);
     this.SUBRULE(this.literal);
   });
-
-
   // ("A","B") または (>5, <13) かつ括弧内で AND/OR 明示も将来的拡張で考慮
   public valueList = this.RULE('valueList', () => {
     this.CONSUME(LParen);
@@ -206,7 +175,6 @@ export class DslParser extends CstParser {
     });
     this.CONSUME(RParen);
   });
-
 public callExpression = this.RULE('callExpression', () => {
   // 先に callee を単独で読む
   let calleeTokenType: any;
@@ -218,19 +186,15 @@ public callExpression = this.RULE('callExpression', () => {
     { ALT: () => { calleeTokenType = All;          this.CONSUME(All, { LABEL: 'callee' }); } },
     { ALT: () => { calleeTokenType = None;         this.CONSUME(None, { LABEL: 'callee' }); } },
   ]);
-
   this.CONSUME(LParen);
-
   // 直前に消費した callee の種類で分岐（GATE を使わない）
   if (calleeTokenType === Contains || calleeTokenType === StartsWith || calleeTokenType === EndsWith) {
     this.SUBRULE(this.callArgumentsText, { LABEL: 'args' });
   } else {
     this.SUBRULE(this.callArgumentsQuantifier, { LABEL: 'args' });
   }
-
   this.CONSUME(RParen);
 });
-
   
   
   // テキスト関数: arg1 (',' arg2)?
@@ -243,7 +207,6 @@ public callArgumentsText = this.RULE('callArgumentsText', () => {
     this.SUBRULE2(this.expression, { LABEL: 'arg2' });
   });
 });
-
 // 量化子: arg1 ',' arg2（従来通り2引数必須）
 public callArgumentsQuantifier = this.RULE('callArgumentsQuantifier', () => {
   this.SUBRULE(this.expression, { LABEL: 'arg1' });
@@ -251,7 +214,6 @@ public callArgumentsQuantifier = this.RULE('callArgumentsQuantifier', () => {
   this.SUBRULE2(this.expression, { LABEL: 'arg2' });
 });
   
-
   // path: Identifier(.Identifier)* | StringLiteral(.Identifier)*
   public fieldPath = this.RULE('fieldPath', () => {
     // 先頭は Identifierのみ 
@@ -271,7 +233,6 @@ public callArgumentsQuantifier = this.RULE('callArgumentsQuantifier', () => {
       ]);
     });
   });
-
   // literal: string | number | true | false | null
   public literal = this.RULE('literal', () => {
     this.OR([

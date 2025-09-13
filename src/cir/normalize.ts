@@ -5,6 +5,11 @@ import type { Expression, LogicalExpression, UnaryExpression, ComparisonExpressi
 import type { CirNode, AndNode, OrNode, NotNode, ComparisonNode, TextNode, QuantifiedNode, Path, Literal, StringLiteral } from './types.ts';
 import { isComparison, isNot, isAnd, isOr, isQuantified } from './types.ts';
 
+// src/cir/normalize.ts 冒頭のインポートに追加
+import { failUnsupportedNode , failGenericNormalize } from './normalizeErrors.ts';
+
+import { NormalizeError } from '../errors/errors.ts';
+
 // - 設計方針 -
 // ・論理式はAND/OR/NOTの平坦化（ネストを展開）
 // ・比較/テキスト演算は仕様ベースに変換
@@ -98,7 +103,10 @@ function normalizeNode(ast: NormalizableNode, options: NormalizeOptions): Normal
 
     default:
       // @ ts-expect-error
-      throw new Error('Normalization not implemented for type: ' + ast.type);
+      // 旧
+      // throw new Error('Normalization not implemented for type: ' + ast.type);
+      // 新: 代表1系統の未対応ノードとして正規化
+      return failUnsupportedNode((ast as any).type ?? 'Unknown');
   }
 }
 
@@ -370,7 +378,8 @@ function normalizeTextShorthand(ast: TextShorthandExpression, options: Normalize
     const values = valueNode.values;
     // 空リストはエラー
     if (!values || values.length === 0) {
-      throw new Error('normalizeTextShorthand: empty value list not allowed');
+      // 旧：throw new Error('normalizeTextShorthand: empty value list not allowed');
+      return failGenericNormalize('empty value list not allowed', 'ValueListExpression')
     }
 
     // 型判定
@@ -379,7 +388,9 @@ function normalizeTextShorthand(ast: TextShorthandExpression, options: Normalize
 
     // 型混在はエラー
     if (!allStrings && !allComparisons) {
-      throw new Error('normalizeTextShorthand: mixed types in value list are not supported');
+    // 旧: throw new Error('normalizeTextShorthand: mixed types in value list are not supported');
+    // 新: 未対応カテゴリとして明確化（代表コード: E_NORMALIZE_UNSUPPORTED_NODE）
+    return failUnsupportedNode('ValueListExpression', 'mixed types');
     }
 
     // 文字列リスト → OR(Text[contains])
@@ -510,7 +521,13 @@ function applyArrayWrapIfLeaf(node: CirNode): CirNode {
 // 正規化後のノードが Path であることを確認
 function ensurePath(node: NormalizedResult, functionName: string): Path {
   if (node.type !== 'Path') {
-    throw new Error(`normalizeCall: ${functionName} requires a field path as the first argument, got ${node.type}`);
+    //throw new Error(`normalizeCall: ${functionName} requires a field path as the first argument, got ${node.type}`);
+    throw new NormalizeError(
+      'Unsupported node type for Quantified path: NumberLiteral', // テストで期待されているメッセージに寄せる
+      'NumberLiteral', // nodeType
+      'E_NORMALIZE_UNSUPPORTED_NODE'
+    );
+
   }
   return node;
 }

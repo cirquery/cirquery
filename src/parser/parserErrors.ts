@@ -8,6 +8,7 @@ export interface TokenLike {
   startColumn?: number;
 }
 
+// 代表ケース: 期待外トークン
 export function failUnexpectedToken(token: TokenLike, expected: string): never {
   const loc = formatLocation(token.startLine, token.startColumn);
   const msg = loc

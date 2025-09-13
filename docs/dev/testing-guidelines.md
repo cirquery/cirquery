@@ -128,7 +128,7 @@ describe('errors: evaluator', () => {
 describe('errors: adapters', () => {
   it('throws AdapterError for unsupported feature', () => {
     // 仮の参照実装呼び出し例: mapQuantifierToPredicate('all') など
-    const fn = () => { throw new AdapterError('[lowdb] Unsupported feature', 'lowdb', 'quantifier:all', 'E_ADAPTER_UNSUPPORTED_FEATURE'); };
+    const fn = () => { throw new AdapterError('[sqlite] Unsupported feature', 'sqlite', 'quantifier:all', 'E_ADAPTER_UNSUPPORTED_FEATURE'); };
     expect(fn).toThrowError(AdapterError);
     try {
       fn();

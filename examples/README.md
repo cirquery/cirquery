@@ -21,16 +21,16 @@
 
 ## 実行スクリプト
 
-- scripts/run-example.ts  
-  入力（--query または --query-file）を読み、AST/CIRを生成し、評価して結果を出力します。
+- examples/scripts/run-example.ts  
+  入力（--query または --query-file）を読み、AST/CIRを生成し、Evaluator が作る JS述語を配列.filter に適用して結果を出力します。
 
 使用例:
 - クエリをファイルから実行し、結果のみ表示
-  - node scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q1_and_or.txt --print result
+  - node examples/scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q1_and_or.txt --print result
 - クエリを直接与え、CIRを表示
-  - node scripts/run-example.ts --data examples/data/cocktails.json --query 'ingredients.alcohol_content > 38' --print cir
+  - node examples/scripts/run-example.ts --data examples/data/cocktails.json --query 'ingredients.alcohol_content > 38' --print cir
 - パイプで DSL を与える
-  - echo 'any(tags, value: "gin")' | node scripts/run-example.ts --data examples/data/cocktails.json --print result
+  - echo 'any(tags, value: "gin")' | node examples/scripts/run-example.ts --data examples/data/cocktails.json --print result
 
 出力例（--print result のとき）
 {
@@ -41,7 +41,7 @@
 
 注:
 - --ignore-case と --locale を併用すると、テキスト評価で大小無視かつロケール依存の小文字化を行います（例: --ignore-case --locale=tr）。
-- このスクリプトは lowdb は使わず、JSON を直接読み込んでフィルタします。lowdb を使う統合検証は test/integration/lowdb.e2e.test.ts を参照してください。
+- このスクリプトは JSON を直接読み込んでフィルタします。バックエンド（SQLite 等）のクエリ言語アダプタ例は adapters/sqlite と test/integration の E2E を参照してください。
 
 ### Windows/PowerShell での実行
 
@@ -90,7 +90,7 @@ REPLコマンド:
   - Gin Tonic(1954) と Rum & Coke(1963) は年が条件を満たさず除外、Evian は Drink なので除外。
 
 実行例:
-node scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q1_and_or.txt --print result
+node examples/scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q1_and_or.txt --print result
 
 期待出力（ids の部分）:
 "ids": 【4, 5】
@@ -108,7 +108,7 @@ node scripts/run-example.ts --data examples/data/cocktails.json --query-file exa
   - Café Gin Fizz は gin だが 38% で > 38 を満たさないため除外。
 
 実行例:
-node scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q2_quantified.txt --print result
+node examples/scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q2_quantified.txt --print result
 
 期待出力（ids の部分）:
 "ids": 【1】
@@ -127,7 +127,7 @@ node scripts/run-example.ts --data examples/data/cocktails.json --query-file exa
   - Rum & Coke は 'rum'、Evian は 'water'、Tequila Sunrise は 'tequila' のため条件不一致。
 
 実行例:
-node scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q3_value_reserved.txt --print result
+node examples/scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q3_value_reserved.txt --print result
 
 期待出力（ids の部分）:
 "ids": 【1, 4】
@@ -146,7 +146,7 @@ node scripts/run-example.ts --data examples/data/cocktails.json --query-file exa
   - Evian(id:3) は ingredients が空配列のため all(...) が false になり除外。
 
 実行例:
-node scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q4_all_none.txt --print result
+node examples/scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q4_all_none.txt --print result
 
 期待出力（ids の部分）:
 "ids": 【1, 2, 4, 5】
@@ -164,7 +164,7 @@ node scripts/run-example.ts --data examples/data/cocktails.json --query-file exa
   - Rum & Coke / Evian は含まれません。
 
 実行例:
-node scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q5_valuelist.txt --print result
+node examples/scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q5_valuelist.txt --print result
 
 期待出力（ids の部分）:
 "ids": 【1, 4, 5】

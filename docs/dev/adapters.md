@@ -46,30 +46,6 @@
 - 例外境界
   - アプリ/CLI層で例外を捕捉し、ユーザー向けメッセージへ変換する。
 
-## lowdb 参照実装（サンプル）
-
-- 位置づけ
-  - in-memory の学習用・E2E用。大規模データ・インデックスは想定外。
-- 方式
-  - CIR → JS述語（evaluate）→ lowdb の filter に適用（低コストで動作確認ができる）。
-- サンプルコード（イメージ）
-```
-import { evaluate, normalize, parse } from 'cirquery';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
-
-type Row = Record<string, unknown>;
-
-export async function runLowdbQuery(dbPath: string, query: string) {
-  const adapter = new Low<Row[]>({ file: dbPath, adapter: new JSONFile<Row[]>(dbPath) });
-  await adapter.read();
-  const rows = adapter.data ?? [];
-
-  const cir = normalize(parse(query).ast);
-  const out = rows.filter(r => evaluate(cir, r));
-  return out;
-}
-```
 
 ## 実装ガイド
 
