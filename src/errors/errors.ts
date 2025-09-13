@@ -72,7 +72,7 @@ export class AdapterError extends CirqueryError {
     public readonly code: ErrorCode;
     constructor(
         message: string,
-        public readonly target?: string, // 例: 'lowdb' / 'mongo' など
+        public readonly target?: string, // 例: 'sqlite' / 'mongo' など
         public readonly feature?: string, // 未対応の機能名や演算子
         code: Extract<ErrorCode, 'E_ADAPTER_UNSUPPORTED_FEATURE' | 'E_ADAPTER_GENERIC'> = 'E_ADAPTER_GENERIC',
     ) {

@@ -486,7 +486,7 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
   it('[C-10][error] 型混在 ("A", >5) はエラー', () => {
     const { ast } = parse('tags: ("A", >5)');
     expect(() => normalize(ast)).toThrow(
-      'normalizeTextShorthand: mixed types in value list are not supported'
+      "Unsupported node 'ValueListExpression': mixed types"
     );
   });
 

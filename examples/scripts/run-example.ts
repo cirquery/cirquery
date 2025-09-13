@@ -7,8 +7,8 @@
  * - クエリは --query または --query-file で指定。出力は --print=cir|ast|result を選択可（デフォルト result）。
  *
  * 使い方:
- *   node scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q2_quantified.txt --print result
- *   echo 'ingredients.alcohol_content > 38' | node scripts/run-example.ts --data examples/data/cocktails.json --print result
+ *   node examples/scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q2_quantified.txt --print result
+ *   echo 'ingredients.alcohol_content > 38' | node examples/scripts/run-example.ts --data examples/data/cocktails.json --print result
  *
  * オプション:
  *   --data <path>         データJSONファイル（配列想定）
@@ -19,16 +19,16 @@
  *   --locale <bcp47>      テキスト評価のロケール（例: tr, fr）
  *
  * 注意:
- * - 本スクリプトは lowdb を使わず、JSONを直接読み込み Array.filter で評価する。
+ * - 本スクリプトは JSONを直接読み込み Array.filter で評価する。
  * - 正規化済みCIRを Evaluator に渡すことが前提。
  */
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import { parse } from '../src/parser/index.ts';
-import { normalize } from '../src/cir/normalize.ts';
-import { buildPredicate } from '../src/cir/evaluator.ts';
+import { parse } from '../../src/parser/index.ts';
+import { normalize } from '../../src/cir/normalize.ts';
+import { buildPredicate } from '../../src/cir/evaluator.ts';
 
 type Args = {
   data?: string;
@@ -87,8 +87,8 @@ function parseArgs(argv: string[]): Args {
   
 function printHelp() {
   console.log(`Usage:
-  node scripts/run-example.ts --data examples/data/cocktails.json --query "<dsl>" --print result
-  node scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q1_and_or.txt --print cir
+  node examples/scripts/run-example.ts --data examples/data/cocktails.json --query "<dsl>" --print result
+  node examples/scripts/run-example.ts --data examples/data/cocktails.json --query-file examples/queries/q1_and_or.txt --print cir
 
 Options:
   --data <path>           JSON array file

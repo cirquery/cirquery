@@ -26,10 +26,21 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write src"
   },
-  "repository": { "type": "git", "url": "git+https://github.com/cirquery/cirquery.git" },
-  "bugs": { "url": "https://github.com/cirquery/cirquery/issues" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cirquery/cirquery.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cirquery/cirquery/issues"
+  },
   "homepage": "https://github.com/cirquery/cirquery#readme",
-  "keywords": ["query","dsl","parser","cir","normalization"],
+  "keywords": [
+    "query",
+    "dsl",
+    "parser",
+    "cir",
+    "normalization"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
@@ -37,10 +48,10 @@
     "@types/node": "^24.3.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
+    "better-sqlite3": "^12.2.0",
     "eslint": "^9.33.0",
     "globals": "^16.3.0",
     "jiti": "^2.5.1",
-    "lowdb": "^7.0.1",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",

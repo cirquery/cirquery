@@ -43,6 +43,6 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "examples/scripts/cirquery.ts", "examples/sqlite/seed.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -15,6 +15,8 @@ import type {
     NullLiteral,
   } from './types.ts';
   
+  import { failTypeMismatch } from './evaluationErrors.ts';
+
   // EvaluateOptions に foldDiacritics を追加
   export type EvaluateOptions = {
     ignoreCase?: boolean;
@@ -111,13 +113,13 @@ function normalizeTextInput(s: string, opts: InternalOptions): string {
       case 'neq':
         return !eq(left, right);
       case 'gt':
-        return cmp(left, right, (a, b) => a > b);
+        return cmp('gt', left, right, (a, b) => a > b);
       case 'gte':
-        return cmp(left, right, (a, b) => a >= b);
+        return cmp('gte', left, right, (a, b) => a >= b);
       case 'lt':
-        return cmp(left, right, (a, b) => a < b);
+        return cmp('lt', left, right, (a, b) => a < b);
       case 'lte':
-        return cmp(left, right, (a, b) => a <= b);
+        return cmp('lte', left, right, (a, b) => a <= b);
       default:
         throw new Error('Unknown comparison op: ' + (node as any).op);
     }
@@ -186,11 +188,24 @@ function normalizeTextInput(s: string, opts: InternalOptions): string {
     return a === b;
   }
   
-  function cmp(a: any, b: any, f: (x: number|string, y: number|string) => boolean): boolean {
-    if ((typeof a === 'number' && typeof b === 'number') ||
-        (typeof a === 'string' && typeof b === 'string')) {
-      return f(a as any, b as any);
-    }
-    return false;
-  }
+  //  number|string 以外の比較なら E_EVAL_TYPE_MISMATCH を投げる
+  function cmp(
+    op: 'gt' | 'gte' | 'lt' | 'lte',
+    a: any,
+    b: any,
+    f: (x: number | string, y: number | string) => boolean
+  ): boolean {
+    const ta = typeof a;
+    const tb = typeof b;
   
+    // number|string のペアのみ許容（NaN 判定は既存どおり eq に委ねるか、この場で false 扱い）
+    const isNumPair = ta === 'number' && tb === 'number';
+    const isStrPair = ta === 'string' && tb === 'string';
+  
+    if (!isNumPair && !isStrPair) {
+      // ここが代表1系統の導入点
+      failTypeMismatch(op, 'number|string', `${ta}/${tb}`);
+    }
+  
+    return f(a as any, b as any);
+  }

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 /**
  * cirquery CLI
  *
@@ -22,9 +23,9 @@
  * - ESM前提。内部で src/parser / src/cir を使用。
  */
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import process from 'node:process';
+import fs from 'fs/promises'; //node:fs/promises
+import path from 'path'; //node:path
+import process from 'process'; //node:process
 import { parse } from '../parser/index.ts';
 import { normalize } from '../cir/normalize.ts';
 import { buildPredicate } from '../cir/evaluator.ts';
