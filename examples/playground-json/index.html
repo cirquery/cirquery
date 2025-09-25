@@ -1,0 +1,53 @@
+<!-- examples/playground-json/index.html -->
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <title>cirquery JSON Playground</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background-color: #f9f9f9; }
+      .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+      .panel { background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      h3 { margin-top: 0; }
+      textarea, pre { width: 100%; min-height: 200px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid #ddd; border-radius: 4px; }
+      pre { background: #f4f4f4; overflow: auto; }
+      table { border-collapse: collapse; width: 100%; font-size: 0.9em; }
+      th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+      #error { color: #d32f2f; white-space: pre-wrap; font-weight: bold; }
+      #dropzone { border: 2px dashed #ccc; padding: 1rem; text-align: center; color: #777; margin-bottom: 1rem; border-radius: 4px; }
+      button { margin-right: 0.5rem; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>cirquery JSON Playground</h1>
+    <p>JSON配列データを読み込み、cirqueryのDSLでフィルタリングを試せます。</p>
+
+    <div class="panel">
+      <button id="loadSampleBtn">サンプル読込</button>
+      <input id="queryInput" type="text" size="60" placeholder="category = 'cocktail' AND price < 15">
+      <button id="runBtn">実行</button>
+      <span id="stats"></span>
+    </div>
+
+    <div class="container" style="margin-top: 1rem;">
+      <div class="panel">
+        <h3>JSONデータ</h3>
+        <div id="dropzone">ここにJSONファイルをドロップ</div>
+        <textarea id="jsonInput" placeholder="[{...}, {...}]"></textarea>
+      </div>
+      <div class="panel">
+        <h3>CIR / 推奨クエリ</h3>
+        <pre id="cirOutput">(CIRがここに表示されます)</pre>
+        <h4>推奨クエリ</h4>
+        <div id="suggestions"></div>
+      </div>
+      <div class="panel">
+        <h3>実行結果</h3>
+        <div id="error" role="alert"></div>
+        <div id="results"></div>
+      </div>
+    </div>
+    <script type="module" src="/main.ts"></script>
+</body>
+</html>
