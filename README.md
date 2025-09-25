@@ -66,36 +66,41 @@ npm install cirquery
 
 ### クエリの構文例
 
-```
-// 基本的な論理演算
-"category = 'drink' AND price < 10"
+`cirquery`は、直感的なDSL（ドメイン固有言語）を使ってJSONデータにクエリを実行できます。以下に代表的な構文を示します。
 
-// テキスト検索
-"notes:contains('gin')"
+-   **基本的な論理演算**
+    等価比較 (`=`)、不等価比較 (`!=`)、数値比較 (`<`, `>`, `<=`, `>=`) と、それらを組み合わせる論理演算子 (`AND`, `OR`) をサポートしています。
+    -   例: `category = "drink" AND price < 10`
+    -   例: `is_alcoholic = true OR contains_citrus = true`
 
-// 配列・オブジェクトの量化子
-"ingredients.alcohol_content > 10"  // any quantifier
-"all(ingredients, type = 'spirit')"  // all quantifier
+-   **テキスト検索**
+    文字列の部分一致検索には、`contains`の省略形であるコロン (`:`) を使用します。
+    -   例: `name:"Tonic"`
 
-// 値リスト
-"category in ('wine', 'beer', 'cocktail')"
+    前方一致 (`startsWith`) と後方一致 (`endsWith`) は関数形式で記述します。
+    -   例: `startsWith(name, "Gin")`
+    -   例: `endsWith(garnish, "peel")`
 
-// 組み合わせ
-"NOT (year >= 2000) AND notes:contains('classic')"
-```
+-   **配列・オブジェクトの量化子**
+    配列の要素に対するクエリには、`any`（いずれかの要素が条件を満たす）または`all`（すべての要素が条件を満たす）量化子を使います。
+    -   `ingredients`配列に`"rum"`を含むカクテル: `any(ingredients, name = "rum")`
+    -   すべての材料が`"spirit"`であるカクテル: `all(ingredients, type = "spirit")`
+    -   配列内のオブジェクトのプロパティへのアクセスは、ドット (`.`) で繋ぎます: `ingredients.name:"gin"`
+
+-   **否定とグループ化**
+    条件の否定には`NOT`を、複雑な条件の優先順位を明示するには括弧 `()` を使います。
+    -   2000年以降ではないカクテル: `NOT (year >= 2000)`
+    -   「ノンアルコール」または「スピリッツでかつ炭酸でない」もの: `is_alcoholic = false OR (type = "spirit" AND NOT is_carbonated = true)`
 
 ### JavaScript/TypeScript での使用
 
 ```
-// ESM
-import { parse, normalize, evaluate } from 'cirquery';
-
-// CJS
-const { parse, normalize, evaluate } = require('cirquery');
-
 // DSLをパースしてCIRに正規化
 const { ast } = parse('category = "cocktail" AND price < 15');
 const cir = normalize(ast);
+
+// CIRから述語関数を生成
+const predicate = buildPredicate(cir);
 
 // データに対してクエリを評価
 const data = [
@@ -103,7 +108,7 @@ const data = [
   { category: 'wine', price: 20, name: 'Chardonnay' }
 ];
 
-const results = data.filter(item => evaluate(cir, item));
+const results = data.filter(predicate);
 console.log(results); // [{ category: 'cocktail', price: 12, name: 'Mojito' }]
 ```
 
