@@ -24,7 +24,11 @@
     "test": "vitest",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "play:dev": "vite --config examples/playground-json/vite.config.ts",
+    "play:build": "vite build --config examples/playground-json/vite.config.ts",
+    "play:preview": "vite preview --config examples/playground-json/vite.config.ts"
+  
   },
   "repository": {
     "type": "git",
