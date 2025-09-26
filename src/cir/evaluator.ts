@@ -160,14 +160,48 @@ function normalizeTextInput(s: string, opts: InternalOptions): string {
     throw new Error('Unknown quantifier: ' + (node as any).quantifier);
   }
   
+  /**
+ * パス解決ユーティリティ。
+ *
+ * 規則:
+ * - 通常: Path.segments を順に辿って record から値を取得する。
+ * - 予約パス 'value':
+ *   - 量化子（Quantified）predicate の評価コンテキストで、配列要素そのものを参照するための予約パス。
+ *   - segments が ['value'] の場合は、現在の評価対象（配列要素）obj をそのまま返す。
+ *   - segments が ['value', ...tail] の場合は、obj をオブジェクトとみなし tail を順に辿る（obj が null/undefined の場合は undefined）。
+ *
+ * 用途:
+ * - 文字列配列など、配列要素がプリミティブのケースを DSL で書けるようにするため、
+ *   any(tags, value: "fantasy") や any(tags, contains(value, "fan")) のような predicate を許容する。
+ *
+ * 注意:
+ * - 予約パス 'value' は通常のフィールド名と衝突しうるが、Evaluator 側では単に segments === 'value' を優先的に解釈する。
+ *   正規化後の CIR は Quantified(predicate) の再帰評価で要素が record になるため、意味的な衝突は実務上ほぼ生じない想定。
+ * - 本仕様は正規化の出力構造を変更せず、Path の表現は一貫して { type:'Path', segments:[...] } を維持する。
+ */
   function getByPath(obj: any, path: Path): any {
+    // 予約パス: value → 配列要素そのもの（Quantified の predicate 再帰で elem が入る）
+    const segs = path.segments;
+    if (segs.length > 0 && segs[0] === 'value') {
+      // value 単体なら配列要素そのものを返す。value.foo のような形は将来拡張で検討。
+      if (segs.length === 1) return obj;
+      // value.foo のような場合、obj がオブジェクトなら後続を辿る
+      let cur: any = obj;
+      for (let i = 1; i < segs.length; i++) {
+        if (cur == null) return undefined;
+        cur = cur[segs[i] as any];
+      }
+      return cur;
+    }
+  
     let cur: any = obj;
-    for (const seg of path.segments) {
+    for (const seg of segs) {
       if (cur == null) return undefined;
       cur = cur[seg as any];
     }
     return cur;
   }
+  
   
   function literalToJs(lit: Literal): any {
     switch (lit.type) {
