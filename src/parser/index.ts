@@ -38,7 +38,6 @@ export function parse(input: string): { ast: AstExpression; tokens: any[] } {
   // 2) Parsing (CST)
   const parser = new DslParser();
   parser.input = lexResult.tokens;
-
   const cst = parser.expression();
 
   if (parser.errors.length > 0) {
@@ -68,9 +67,9 @@ export function parse(input: string): { ast: AstExpression; tokens: any[] } {
     );
   }
 
-  // CST→AST（実装時に本実装へ）
-  // const ast = astBuilderVisitor.visit(cst) as AstExpression;
-  // return { ast, tokens: lexResult.tokens };
+  // 3) CST -> AST（Visitor）
+  const ast = astBuilderVisitor.visit(cst) as AstExpression;
 
-  return { cst, tokens: lexResult.tokens };
+  // デバッグ・ツール連携を考慮し tokens も返す（将来オプション化可）
+  return { ast, tokens: lexResult.tokens };
 }
