@@ -1,7 +1,8 @@
 // examples/playground-json/main.ts
 import { parse, normalize, buildPredicate } from 'cirquery';
 import { inferSchemaDetailed, buildSuggestions } from './schema-suggest'; // 後で作成
-import sampleData from './cocktails.json';
+
+
 
 // --- 状態管理 ---
 const state = {
@@ -167,15 +168,19 @@ function renderSuggestions() {
   });
 }
 
+// サンプル JSON 読み込み
+async function loadSampleData() {
+  const res = await fetch('./cocktails.json');  // public/cocktails.json に配置
+  const data = await res.json();
+  jsonInput.value = JSON.stringify(data, null, 2);
+  handleJsonInput();
+}
+
 // --- 初期化 ---
 function init() {
   // イベントリスナー設定
   $('runBtn').addEventListener('click', handleRun);
-  $('loadSampleBtn').addEventListener('click', () => {
-    // インポートしたJSONデータをテキストエリアに設定し、状態を更新
-    jsonInput.value = JSON.stringify(sampleData, null, 2);
-    handleJsonInput();
-  });
+  $('loadSampleBtn').addEventListener('click', loadSampleData);
   jsonInput.addEventListener('input', handleJsonInput);
   const dropzone = $('dropzone');
   dropzone.addEventListener('dragover', e => e.preventDefault());
@@ -187,7 +192,7 @@ function init() {
   }
 
   // 初期表示
-  $('loadSampleBtn').click();
+  loadSampleData();
 }
 
 document.addEventListener('DOMContentLoaded', init);
