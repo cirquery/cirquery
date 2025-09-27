@@ -1,0 +1,42 @@
+name: Deploy playground-json to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - feature/deploy-playground
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22'
+
+    # cirquery ビルド
+    - name: Install cirquery dependencies
+      run: npm install
+    - name: Build cirquery
+      run: npm run build
+
+    # playground-json ビルド
+    - name: Install playground-json dependencies
+      run: npm install
+      working-directory: examples/playground-json
+    - name: Build playground-json
+      run: npm run play:build
+      working-directory: examples/playground-json
+
+    # GitHub Pages デプロイ
+    - name: Deploy to gh-pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./examples/playground-json/dist
+        publish_branch: gh-pages
