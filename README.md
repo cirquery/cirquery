@@ -4,6 +4,15 @@
 
 **cirquery**（Canonical Intermediate Representation Query）は、人間に優しいクエリDSLをバックエンドアダプタに変換するための共通中間表現（CIR）を提供するTypeScriptライブラリです。
 
+## 🔬 JSON Playground
+
+オンラインでcirquery DSLのフィルタリングを手軽に試せるプレイグラウンドを提供しています。  
+ブラウザでJSONファイルをドラッグ&ドロップし、DSLクエリを直接実行できます。
+
+[![Playground](https://img.shields.io/badge/Playground-Open-blue)](https://cirquery.github.io/cirquery/)
+
+[https://cirquery.github.io/cirquery/](https://cirquery.github.io/cirquery/)
+
 ## ✨ 特徴
 
 - **人間に優しいクエリ言語**: 自然な構文でデータ検索・フィルタリング条件を記述
@@ -14,53 +23,15 @@
 
 ## 🚀 インストール
 
-現時点ではnpm未公開のため、以下の方法でローカル利用・検証が可能です。
+### 通常インストール（npm公式リリース）
 
-### 方法A: npm link（推奨・動作確認が容易）
+最新版はnpmで配布されています。  
+通常のパッケージとして以下コマンドで導入できます。
+`npm install cirquery`
 
-1. このリポジトリ直下でリンクを作成
-   ```
-   npm ci
-   npm run build
-   npm link
-   ```
-2. 利用したい別プロジェクトでリンク
-   ```
-   npm link cirquery
-   ```
-3. そのプロジェクトから `import 'cirquery'` で参照できます。
+- npmパッケージ: [cirquery@npm](https://www.npmjs.com/package/cirquery)
 
-解除:
-```
-npm unlink cirquery && npm unlink --global cirquery
-```
-
-### 方法B: 相対インストール（簡易）
-
-別プロジェクトで、ビルド成果物を直接参照します。
-```
-npm install /absolute/path/to/cirquery
-```
-注: ソース一式が取り込まれるため、本番に近い検証には `npm link` を推奨します。
-
-### 方法C: パッケージ化して検証（本番配布に近い）
-
-1. このリポジトリでパックを生成
-   ```
-   npm run build
-   npm pack
-   ```
-   distとpackage.jsonの設定に基づくtarballが生成されます（例: `cirquery-0.1.0.tgz`）。
-2. 別プロジェクトでインストール
-   ```
-   npm install /path/to/cirquery-0.1.0.tgz
-   ```
-
-npm公開後は、通常通り:
-```
-npm install cirquery
-```
-に差し替えます。
+詳細なローカル開発やテスト方法は「🛠️ 開発」セクションをご参照ください。
 
 ## 📖 基本的な使い方
 
@@ -145,6 +116,53 @@ npm install
 npm run build
 npm test
 ```
+
+### ローカル利用・リンク方法
+
+forkして手元で動作検証や開発を行いたい方向けに以下の方法を用意しています。
+
+
+### 方法A: npm link（推奨・動作確認が容易）
+
+1. リポジトリ直下でリンクを作成
+   ```
+   npm ci
+   npm run build
+   npm link
+   ```
+2. 利用したい別プロジェクトでリンク
+   ```
+   npm link cirquery
+   ```
+3. そのプロジェクトから `import 'cirquery'` で参照できます。
+
+解除:
+```
+npm unlink cirquery && npm unlink --global cirquery
+```
+
+### 方法B: 相対インストール（簡易）
+
+別プロジェクトで、ビルド成果物を直接参照します。
+```
+npm install /absolute/path/to/cirquery
+```
+注: ソース一式が取り込まれるため、本番に近い検証には方法Aの `npm link` を推奨します。
+
+### 方法C: パッケージ化して検証（本番配布に近い）
+
+1. このリポジトリでパックを生成
+   ```
+   npm run build
+   npm pack
+   ```
+   distとpackage.jsonの設定に基づくtarballが生成されます（例: `cirquery-0.1.0.tgz`）。
+
+2. 別プロジェクトでインストール
+   ```
+   npm install /path/to/cirquery-0.1.0.tgz
+   ```
+
 
 ### ディレクトリ構成
 
