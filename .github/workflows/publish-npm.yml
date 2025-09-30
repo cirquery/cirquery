@@ -1,0 +1,40 @@
+name: Publish cirquery to npm
+
+on:
+  push:
+    # バージョンアップ時に手動で作成するタグ(push tag)
+    tags:
+      - 'v*.*.*'   # セマンティックバージョンのタグを検知して自動実行
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      # ソースコードをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Node.js をセットアップ
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      # 依存関係インストール
+      - name: Install dependencies
+        run: npm install
+
+      # TypeScript の型チェック（必要なら）
+      - name: Typecheck
+        run: npm run typecheck
+
+      # ビルド
+      - name: Build cirquery
+        run: npm run build
+
+      # npm 公開
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
