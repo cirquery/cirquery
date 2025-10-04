@@ -1,6 +1,6 @@
 {
   "name": "cirquery",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Core Common/Intermediate Representation for transforming human-friendly query DSLs to backend adapters.",
   "type": "module",
   "main": "./dist/index.cjs",
