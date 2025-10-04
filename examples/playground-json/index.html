@@ -11,16 +11,119 @@
       .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
       .panel { background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
       h3 { margin-top: 0; }
-      textarea, pre { width: 100%; min-height: 200px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid #ddd; border-radius: 4px; }
-      pre { background: #f4f4f4; overflow: auto; }
-      table { border-collapse: collapse; width: 100%; font-size: 0.9em; }
-      th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
-      #error { color: #d32f2f; white-space: pre-wrap; font-weight: bold; }
-      #dropzone { border: 2px dashed #ccc; padding: 1rem; text-align: center; color: #777; margin-bottom: 1rem; border-radius: 4px; cursor: pointer; transition: border-color 0.2s; }
-      #dropzone:hover { border-color: #999; }
-      button { margin-right: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem 1rem; cursor: pointer; border: 1px solid #ddd; border-radius: 4px; background: white; transition: background 0.2s; }
-      button:hover { background: #f0f0f0; }
-      #queryInput { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
+
+      /* textareaとpreの基本スタイル */
+      textarea, pre { 
+        width: 100%; 
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace; 
+        border: 1px solid #ddd; 
+        border-radius: 4px; 
+        padding: 0.5rem;
+        box-sizing: border-box;
+      }
+
+      /* JSON入力欄 */
+      #jsonInput { 
+        min-height: 500px; 
+      }
+
+      /* CIR表示エリア（固定高さ + スクロール） */
+      #cirOutput { 
+        height: 300px; 
+        overflow: auto; 
+        background: #f4f4f4; 
+      }
+
+      /* Results表示エリア（固定高さ + スクロール） */
+      #results { 
+        height: 560px; 
+        overflow: auto; 
+        border: 1px solid #ddd; 
+        border-radius: 4px; 
+        padding: 0.5rem;
+        background: white;
+      }
+
+      /* エラー表示 */
+      #error { 
+        color: #d32f2f; 
+        white-space: pre-wrap; 
+        font-weight: bold; 
+        margin-bottom: 0.5rem;
+      }
+
+      /* テーブルスタイル */
+      table { 
+        border-collapse: collapse; 
+        width: 100%; 
+        font-size: 0.9em; 
+      }
+      th, td { 
+        border: 1px solid #ddd; 
+        padding: 0.5rem; 
+        text-align: left; 
+      }
+
+      /* ドロップゾーン */
+      #dropzone { 
+        border: 2px dashed #ccc; 
+        padding: 1rem; 
+        text-align: center; 
+        color: #777; 
+        margin-bottom: 1rem; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        transition: border-color 0.2s; 
+      }
+      #dropzone:hover { 
+        border-color: #999; 
+      }
+
+      /* ボタン */
+      button { 
+        margin-right: 0.5rem; 
+        margin-bottom: 0.5rem; 
+        padding: 0.5rem 1rem; 
+        cursor: pointer; 
+        border: 1px solid #ddd; 
+        border-radius: 4px; 
+        background: white; 
+        transition: background 0.2s; 
+      }
+      button:hover { 
+        background: #f0f0f0; 
+      }
+
+      /* クエリ入力 */
+      #queryInput { 
+        padding: 0.5rem; 
+        border: 1px solid #ddd; 
+        border-radius: 4px; 
+      }
+      /* スクロールバーのカスタマイズ（Webkit系ブラウザ） */
+      #cirOutput::-webkit-scrollbar,
+      #results::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      #cirOutput::-webkit-scrollbar-track,
+      #results::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+
+      #cirOutput::-webkit-scrollbar-thumb,
+      #results::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+
+      #cirOutput::-webkit-scrollbar-thumb:hover,
+      #results::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
     </style>
 </head>
 <body>
@@ -49,7 +152,9 @@
       <div class="panel">
         <h3>Results</h3>
         <div id="error" role="alert"></div>
-        <div id="results"></div>
+        <div id="results">
+          <!-- ここにテーブルが挿入される -->
+        </div>
       </div>
     </div>
     
