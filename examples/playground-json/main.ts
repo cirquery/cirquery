@@ -53,7 +53,7 @@ function handleRun() {
       location.hash = encodeURIComponent(query);
     } catch (e: any) {
       state.error = e.message;
-      console.error("実行エラー:", e);
+      console.error("Execution error:", e);
     }
     renderError();
   }
@@ -66,7 +66,7 @@ function handleJsonInput() {
       state.rows = [];
     } else {
       const parsed = JSON.parse(rawJson);
-      if (!Array.isArray(parsed)) throw new Error("データはJSON配列形式である必要があります。");
+      if (!Array.isArray(parsed)) throw new Error("Data must be a JSON array.");
       state.rows = parsed;
     }
     state.error = null;
@@ -85,7 +85,7 @@ function handleFileDrop(e: DragEvent) {
     jsonInput.value = String(reader.result ?? '');
     handleJsonInput();
   };
-  reader.onerror = () => { state.error = "ファイル読み込みに失敗しました。"; renderError(); };
+  reader.onerror = () => { state.error = "Failed to read file."; renderError(); };
   reader.readAsText(file);
 }
 
@@ -93,7 +93,7 @@ function handleFileDrop(e: DragEvent) {
 function renderAll() {
   renderSuggestions();
   renderError();
-  $('stats').textContent = `読み込み件数: ${state.rows.length}`;
+  $('stats').textContent = `Loaded: ${state.rows.length} items`;
 }
 
 function renderError() { $('error').textContent = state.error ?? ''; }
@@ -106,7 +106,7 @@ function renderTable(rows: Record<string, unknown>[]) {
   
     // 結果が空の場合のメッセージ
     if (!rows.length) {
-      container.textContent = '結果がありません。';
+      container.textContent = 'No results found.';
       return;
     }
   

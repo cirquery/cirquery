@@ -1,9 +1,10 @@
 <!-- examples/playground-json/index.html -->
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <title>cirquery JSON Playground</title>
+    <meta name="description" content="Try cirquery in your browser. Filter nested JSON with human-readable queries—no installation required." />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
       body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background-color: #f9f9f9; }
@@ -15,46 +16,52 @@
       table { border-collapse: collapse; width: 100%; font-size: 0.9em; }
       th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
       #error { color: #d32f2f; white-space: pre-wrap; font-weight: bold; }
-      #dropzone { border: 2px dashed #ccc; padding: 1rem; text-align: center; color: #777; margin-bottom: 1rem; border-radius: 4px; }
-      button { margin-right: 0.5rem; margin-bottom: 0.5rem; }
+      #dropzone { border: 2px dashed #ccc; padding: 1rem; text-align: center; color: #777; margin-bottom: 1rem; border-radius: 4px; cursor: pointer; transition: border-color 0.2s; }
+      #dropzone:hover { border-color: #999; }
+      button { margin-right: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem 1rem; cursor: pointer; border: 1px solid #ddd; border-radius: 4px; background: white; transition: background 0.2s; }
+      button:hover { background: #f0f0f0; }
+      #queryInput { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
     </style>
 </head>
 <body>
     <h1>cirquery JSON Playground</h1>
-    <p>JSON配列データを読み込み、cirqueryのDSLでフィルタリングを試せます。</p>
+    <p>Load JSON array data and filter it with cirquery's intuitive query language. Try it instantly—no installation required.</p>
 
     <div class="panel">
-      <button id="loadSampleBtn">サンプル読込</button>
-      <input id="queryInput" type="text" size="60" placeholder="category = 'cocktail' AND price < 15">
-      <button id="runBtn">実行</button>
+      <button id="loadSampleBtn">Load Sample Data</button>
+      <input id="queryInput" type="text" size="60" placeholder='ingredients.name:"gin" AND abv_estimate<20'>
+      <button id="runBtn">Run Query</button>
       <span id="stats"></span>
     </div>
 
     <div class="container" style="margin-top: 1rem;">
       <div class="panel">
-        <h3>JSONデータ</h3>
-        <div id="dropzone">ここにJSONファイルをドロップ</div>
-        <textarea id="jsonInput" placeholder="[{...}, {...}]"></textarea>
+        <h3>JSON Data</h3>
+        <div id="dropzone">Drop JSON file here or click to select</div>
+        <textarea id="jsonInput" placeholder='[{"name": "...", "category": "..."}, ...]'></textarea>
       </div>
       <div class="panel">
-        <h3>CIR / 推奨クエリ</h3>
-        <pre id="cirOutput">(CIRがここに表示されます)</pre>
-        <h4>推奨クエリ</h4>
+        <h3>CIR (Intermediate Representation)</h3>
+        <pre id="cirOutput">(CIR will be displayed here)</pre>
+        <h4>Query Suggestions</h4>
         <div id="suggestions"></div>
       </div>
       <div class="panel">
-        <h3>実行結果</h3>
+        <h3>Results</h3>
         <div id="error" role="alert"></div>
         <div id="results"></div>
       </div>
     </div>
-    <footer>
+    
+    <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; color: #666; font-size: 0.9em;">
       <p>
         <a href="https://github.com/cirquery/cirquery" target="_blank" rel="noopener">View on GitHub</a>
         &nbsp;|&nbsp;
+        <a href="https://github.com/cirquery/cirquery#readme" target="_blank" rel="noopener">Documentation</a>
+        &nbsp;|&nbsp;
         Licensed under <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener">MIT</a>
       </p>
-      <p>© 2025 curionlab / cirquery project</p>
+      <p>© 2025 <a href="https://github.com/cirquery" target="_blank" rel="noopener">cirquery project</a></p>
     </footer>
     <script type="module" src="/main.ts"></script>
 </body>
