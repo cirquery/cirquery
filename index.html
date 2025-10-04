@@ -128,9 +128,15 @@
   <script type="module" crossorigin src="/cirquery/assets/index-KZRGKXXa.js"></script>
 </head>
 <body>
-    <h1>cirquery JSON Playground</h1>
-    <p>Load JSON array data and filter it with cirquery's intuitive query language. Try it instantly—no installation required.</p>
-
+    <header style="margin-bottom: 1.5rem;">
+      <h1 style="margin-bottom: 0.5rem;">cirquery JSON Playground</h1>
+      <nav style="margin-bottom: 0.5rem;">
+        <a href="https://github.com/cirquery/cirquery" target="_blank" rel="noopener">⭐ GitHub</a>
+        <a href="https://github.com/cirquery/cirquery#readme" target="_blank" rel="noopener">📖 Documentation</a>
+        <a href="https://www.npmjs.com/package/cirquery" target="_blank" rel="noopener">📦 npm</a>
+      </nav>
+      <p style="margin-top: 0; color: #555;">Load JSON array data and filter it with cirquery's intuitive query language. Try it instantly—no installation required.</p>
+    </header>
     <div class="panel">
       <button id="loadSampleBtn">Load Sample Data</button>
       <input id="queryInput" type="text" size="60" placeholder='ingredients.name:"gin" AND abv_estimate<20'>
