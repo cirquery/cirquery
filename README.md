@@ -1,79 +1,99 @@
 # cirquery
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://img.shields.io/npm/v/cirquery.svg)](https://www.npmjs.com/package/cirquery)
 
-**cirquery**（Canonical Intermediate Representation Query）は、人間に優しいクエリDSLをバックエンドアダプタに変換するための共通中間表現（CIR）を提供するTypeScriptライブラリです。
+**Read this in other languages:** [日本語](README.ja.md)
+
+---
+
+**cirquery** (Canonical Intermediate Representation Query) is a TypeScript library that provides a human-friendly query DSL for filtering JSON data, with a common intermediate representation (CIR) that can be adapted to multiple backends.
 
 ## 🔬 JSON Playground
 
-オンラインでcirquery DSLのフィルタリングを手軽に試せるプレイグラウンドを提供しています。  
-ブラウザでJSONファイルをドラッグ&ドロップし、DSLクエリを直接実行できます。
+Try cirquery instantly in your browser—no installation required.  
+Drag and drop your JSON files and execute queries in real-time.
 
 [![Playground](https://img.shields.io/badge/Playground-Open-blue)](https://cirquery.github.io/cirquery/)
 
-[https://cirquery.github.io/cirquery/](https://cirquery.github.io/cirquery/)
+👉 **[Launch Playground](https://cirquery.github.io/cirquery/)**
 
-## ✨ 特徴
+## ✨ Features
 
-- **人間に優しいクエリ言語**: 自然な構文でデータ検索・フィルタリング条件を記述
-- **共通中間表現**: DSLを統一されたCIRに正規化し、複数のバックエンドで再利用
-- **型安全**: TypeScriptで完全に型付けされた設計
-- **拡張可能**: カスタムアダプタやフィールド検索を簡単に追加
-- **多言語対応**: アクセント除去やケースフォールディングをサポート
+- **Human-Readable Query Language**: Write intuitive search queries with natural syntax
+- **Common Intermediate Representation (CIR)**: Normalize queries into a backend-agnostic format for reusability
+- **Type-Safe**: Fully typed TypeScript implementation
+- **Extensible**: Easily add custom adapters or field search capabilities
+- **Multi-Language Support**: Built-in accent folding and case normalization
 
-## 🚀 インストール
+## 🚀 Installation
 
-### 通常インストール（npm公式リリース）
-
-最新版はnpmで配布されています。  
-通常のパッケージとして以下コマンドで導入できます。
-`npm install cirquery`
-
-- npmパッケージ: [cirquery@npm](https://www.npmjs.com/package/cirquery)
-
-詳細なローカル開発やテスト方法は「🛠️ 開発」セクションをご参照ください。
-
-## 📖 基本的な使い方
-
-### クエリの構文例
-
-`cirquery`は、直感的なDSL（ドメイン固有言語）を使ってJSONデータにクエリを実行できます。以下に代表的な構文を示します。
-
--   **基本的な論理演算**
-    等価比較 (`=`)、不等価比較 (`!=`)、数値比較 (`<`, `>`, `<=`, `>=`) と、それらを組み合わせる論理演算子 (`AND`, `OR`) をサポートしています。
-    -   例: `category = "drink" AND price < 10`
-    -   例: `is_alcoholic = true OR contains_citrus = true`
-
--   **テキスト検索**
-    文字列の部分一致検索には、`contains`の省略形であるコロン (`:`) を使用します。
-    -   例: `name:"Tonic"`
-
-    前方一致 (`startsWith`) と後方一致 (`endsWith`) は関数形式で記述します。
-    -   例: `startsWith(name, "Gin")`
-    -   例: `endsWith(garnish, "peel")`
-
--   **配列・オブジェクトの量化子**
-    配列の要素に対するクエリには、`any`（いずれかの要素が条件を満たす）または`all`（すべての要素が条件を満たす）量化子を使います。
-    -   `ingredients`配列に`"rum"`を含むカクテル: `any(ingredients, name = "rum")`
-    -   すべての材料が`"spirit"`であるカクテル: `all(ingredients, type = "spirit")`
-    -   配列内のオブジェクトのプロパティへのアクセスは、ドット (`.`) で繋ぎます: `ingredients.name:"gin"`
-
--   **否定とグループ化**
-    条件の否定には`NOT`を、複雑な条件の優先順位を明示するには括弧 `()` を使います。
-    -   2000年以降ではないカクテル: `NOT (year >= 2000)`
-    -   「ノンアルコール」または「スピリッツでかつ炭酸でない」もの: `is_alcoholic = false OR (type = "spirit" AND NOT is_carbonated = true)`
-
-### JavaScript/TypeScript での使用
+### From npm
 
 ```
-// DSLをパースしてCIRに正規化
+npm install cirquery
+```
+
+- npm package: [cirquery@npm](https://www.npmjs.com/package/cirquery)
+
+For local development and testing, see the **🛠️ Development** section below.
+
+## 📖 Quick Start
+
+### Query Syntax Examples
+
+cirquery uses an intuitive DSL (Domain-Specific Language) to query JSON data. Here are common patterns:
+
+#### Basic Logical Operations
+
+Supports equality (`=`), inequality (`!=`), numeric comparisons (`<`, `>`, `<=`, `>=`), and logical operators (`AND`, `OR`).
+
+`category = "drink" AND price < 10`  
+`is_alcoholic = true OR contains_citrus = true`
+
+#### Text Search
+
+Use colon (`:`) as shorthand for `contains`:
+
+`name:"Tonic"`
+
+Use function syntax for prefix/suffix matching:
+
+`startsWith(name, "Gin")`  
+`endsWith(garnish, "peel")`
+
+
+#### Array Quantifiers
+
+Query array elements with `any` (at least one element matches) or `all` (all elements match):
+
+`any(ingredients, name = "rum")`
+`all(ingredients, type = "spirit")`
+
+Access nested properties with dot notation:
+
+`ingredients.name:"gin"`
+
+#### Negation and Grouping
+
+Use `NOT` for negation and parentheses `()` for precedence:
+
+`NOT (year >= 2000)`  
+`is_alcoholic = false OR (type = "spirit" AND NOT is_carbonated = true)`
+
+### JavaScript/TypeScript Usage
+
+```typescript
+import { parse, normalize, buildPredicate } from 'cirquery';
+
+// Parse DSL and normalize to CIR
 const { ast } = parse('category = "cocktail" AND price < 15');
 const cir = normalize(ast);
 
-// CIRから述語関数を生成
+// Generate predicate function from CIR
 const predicate = buildPredicate(cir);
 
-// データに対してクエリを評価
+// Filter data
 const data = [
   { category: 'cocktail', price: 12, name: 'Mojito' },
   { category: 'wine', price: 20, name: 'Chardonnay' }
@@ -83,31 +103,31 @@ const results = data.filter(predicate);
 console.log(results); // [{ category: 'cocktail', price: 12, name: 'Mojito' }]
 ```
 
-### CLI での使用
+### CLI Usage
 
 ```
-# REPLを起動
+# Launch REPL
 npx cirquery
 
-# ファイルに対してクエリ実行
+# Query from stdin
 echo '{"name":"test","category":"drink"}' | npx cirquery 'category = "drink"'
 ```
 
-## 📚 ドキュメント
+## 📚 Documentation
 
-- [DSL構文リファレンス](docs/spec/dsl.md) - クエリ言語の詳細な構文
-- [CIR仕様](docs/spec/ast-cir.md) - 中間表現の型定義
-- [正規化設計](docs/design/normalization.md) - DSLからCIRへの変換仕様
-- [サンプル集](examples/README.md) - 実用的なクエリ例
+- [DSL Syntax Reference](docs/spec/dsl.md) - Detailed query language syntax
+- [CIR Specification](docs/spec/ast-cir.md) - Intermediate representation types
+- [Normalization Design](docs/design/normalization.md) - DSL to CIR conversion rules
+- [Examples](examples/README.md) - Practical query examples
 
-## 🛠️ 開発
+## 🛠️ Development
 
-### 前提条件
+### Prerequisites
 
-- Node.js 22+ 
-- npm または pnpm
+- Node.js 22+
+- npm or pnpm
 
-### セットアップ
+### Setup
 
 ```
 git clone https://github.com/cirquery/cirquery.git
@@ -117,149 +137,125 @@ npm run build
 npm test
 ```
 
-### ローカル利用・リンク方法
+### Local Development Methods
 
-forkして手元で動作検証や開発を行いたい方向けに以下の方法を用意しています。
+For contributors who want to test locally or develop new features:
 
+#### Method A: npm link (Recommended)
 
-### 方法A: npm link（推奨・動作確認が容易）
-
-1. リポジトリ直下でリンクを作成
+1. Create link in repository root:
    ```
    npm ci
    npm run build
    npm link
    ```
-2. 利用したい別プロジェクトでリンク
+
+2. Link from your project:
    ```
    npm link cirquery
    ```
-3. そのプロジェクトから `import 'cirquery'` で参照できます。
 
-解除:
+3. Import as usual:
+   ```
+   import 'cirquery';
+   ```
+
+Unlink:
 ```
 npm unlink cirquery && npm unlink --global cirquery
 ```
 
-### 方法B: 相対インストール（簡易）
+#### Method B: Relative Install (Simple)
 
-別プロジェクトで、ビルド成果物を直接参照します。
 ```
 npm install /absolute/path/to/cirquery
 ```
-注: ソース一式が取り込まれるため、本番に近い検証には方法Aの `npm link` を推奨します。
 
-### 方法C: パッケージ化して検証（本番配布に近い）
+Note: This includes all source files. For production-like testing, use Method A.
 
-1. このリポジトリでパックを生成
+#### Method C: Pack and Install (Production-like)
+
+1. Generate tarball:
    ```
    npm run build
    npm pack
    ```
-   distとpackage.jsonの設定に基づくtarballが生成されます（例: `cirquery-0.1.0.tgz`）。
 
-2. 別プロジェクトでインストール
+2. Install in your project:
    ```
-   npm install /path/to/cirquery-0.1.0.tgz
+   npm install /path/to/cirquery-0.2.1.tgz
    ```
 
-
-### ディレクトリ構成
+### Directory Structure
 
 ```
-├── src/                 # ソースコード
-│   ├── parser/          # DSL パーサ
-│   ├── cir/            # CIR 正規化・評価
-│   ├── cli/            # CLI ツール
-│   └── adapters/       # バックエンドアダプタ
-├── test/               # テスト
-├── docs/               # ドキュメント
-├── examples/           # サンプル・データ
-└── scripts/            # 開発補助スクリプト
+├── src/                 # Source code
+│   ├── parser/          # DSL parser
+│   ├── cir/            # CIR normalization & evaluation
+│   ├── cli/            # CLI tool
+│   └── adapters/       # Backend adapters
+├── test/               # Tests
+├── docs/               # Documentation
+├── examples/           # Sample data & queries
+└── scripts/            # Development scripts
 ```
 
-### ツール配置の方針
+### Scripts
 
-- scripts/: 開発者向けの補助スクリプトを配置します（例: examples をローカルで実行する run-example.ts など）。配布対象ではありません。
-- 将来的にCLIを提供する場合は bin/ を新設し、package.json の "bin" フィールドで公開します（現時点では bin/ は使用していません）。
-- src/adapters/ は学習・E2Eの参照実装置き場です。npm 配布には含まれません。各バックエンドに合わせたアダプタは CIR を基に実装可能です（docs/dev/adapters.md 参照）。
+- `npm run build` - Build TypeScript (ESM/CJS)
+- `npm test` - Run tests
+- `npm run typecheck` - Type checking
+- `npm run lint` - Run ESLint
+- `npm run format` - Format with Prettier
 
-### スクリプト
-
-- `npm run build` - TypeScript をビルド（ESM/CJS）
-- `npm test` - テスト実行
-- `npm run typecheck` - 型チェック
-- `npm run lint` - ESLint 実行
-- `npm run format` - Prettier でフォーマット
-
-### E2Eテストの前提と実行
-
-E2E テストは `examples/` 配下のデータとクエリに依存します。
-
-前提:
-- Node 22+
-- `examples/data/*.json`（drinks.json / cocktails.json など）
-- `examples/queries/*`
-
-実行:
-- 依存インストール: `npm ci`
-- 全テスト: `npm test`
-- 特定のE2Eのみ: `vitest run test/integration/sqlite.e2e.test.ts`
-
-注意:
-- examples のデータやクエリを変更した場合、E2Eの期待結果も更新が必要です。
-
-## 🔧 アーキテクチャ
+## 🔧 Architecture
 
 ```
 [DSL] → [Parser] → [AST] → [Normalize] → [CIR] → [Evaluator/Adapters]
 ```
 
-1. **DSL**: 人間に優しいクエリ言語
-2. **Parser**: DSLを構文解析してASTを生成
-3. **Normalize**: ASTを正規化してCIRに変換
-4. **Evaluator/Adapters**: CIRを実行（JavaScript評価、DB変換など）
+1. **DSL**: Human-friendly query language
+2. **Parser**: Parse DSL into Abstract Syntax Tree (AST)
+3. **Normalize**: Transform AST into Common Intermediate Representation (CIR)
+4. **Evaluator/Adapters**: Execute CIR (JavaScript evaluation, DB conversion, etc.)
 
-## 🎯 ロードマップ
+## 🎯 Roadmap
 
-## 🎯 ロードマップ
+### v0.1 (Completed)
+- [x] Basic DSL syntax (logical operations, comparisons, text search, quantifiers)
+- [x] CIR normalization (De Morgan's laws, NOT optimization)
+- [x] JavaScript evaluator
+- [x] Accent folding & case normalization
 
-### v0.1 (完了)
-- [x] 基本DSL構文（論理演算、比較、テキスト検索、量化子）
-- [x] CIR正規化（De Morgan、NOT最適化）
-- [x] JavaScript評価器
-- [x] アクセント除去・ケースフォールディング
+### v0.2 (Current)
+- [x] Multi-level array path shorthand support
 
-### v0.2 (現在)
-- [x] 多段配列パスのショートハンドサポート (← 今回の変更を反映)
+### v0.3 (Planned)
+- [ ] Explicit OR/AND in ValueList
+- [ ] Full-field search (ANYFIELD)
+- [ ] Additional backend adapters (MongoDB, SQLite)
 
-### v0.3 (予定)
-- [ ] ValueList内明示OR/AND対応
-- [ ] 全フィールド検索（ANYFIELD）
-- [ ] 追加のバックエンドアダプタ
+## 🤝 Contributing
 
+Bug reports, feature requests, and pull requests are welcome!
 
-## 🤝 コントリビューション
+1. Fork this repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Create a Pull Request
 
-バグレポート、機能要望、プルリクエストを歓迎します！
+See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for details.
 
-1. このリポジトリをフォーク
-2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add amazing feature'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
+## 📄 License
 
-詳細は [CONTRIBUTING.md](docs/CONTRIBUTING.md) を参照してください。
+This project is licensed under the [MIT License](LICENSE).
 
-## 📄 ライセンス
+## 🙏 Acknowledgments
 
-このプロジェクトは [MIT License](LICENSE) の下で公開されています。
-
-## 🙏 謝辞
-
-- [Chevrotain](https://github.com/Chevrotain/chevrotain) - パーサジェネレータ
-- [Vitest](https://vitest.dev/) - テストフレームワーク
-- [tsup](https://github.com/egoist/tsup) - TypeScriptバンドラ
+- [Chevrotain](https://github.com/Chevrotain/chevrotain) - Parser generator
+- [Vitest](https://vitest.dev/) - Test framework
+- [tsup](https://github.com/egoist/tsup) - TypeScript bundler
 
 ---
 
