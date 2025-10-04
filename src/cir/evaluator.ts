@@ -229,6 +229,13 @@ function normalizeTextInput(s: string, opts: InternalOptions): string {
     b: any,
     f: (x: number | string, y: number | string) => boolean
   ): boolean {
+    // --- ▼▼▼ ここから追加 ▼▼▼ ---
+    // 比較対象のプロパティが存在しない場合 (null または undefined)、
+    // その比較は偽(false)として扱うのが安全かつ直感的。
+    if (a === null || a === undefined) {
+      return false;
+    }
+    // --- ▲▲▲ ここまで追加 ▲▲▲ ---
     const ta = typeof a;
     const tb = typeof b;
   
