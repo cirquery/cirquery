@@ -1,56 +1,1900 @@
 [
-    {
-      "id": 1,
-      "name": "Gin Tonic",
-      "category": "Spirits",
-      "year": 1954,
-      "tags": ["drink", "gin"],
-      "ingredients": [
-        { "name": "gin", "alcohol_content": 40 },
-        { "name": "tonic", "alcohol_content": 0 }
-      ]
+  {
+    "id": 1,
+    "name": "Martini",
+    "origin": {
+      "author": "Unknown",
+      "year": 1880,
+      "place": "San Francisco, USA"
     },
-    {
-      "id": 2,
-      "name": "Rum & Coke",
-      "category": "Spirits",
-      "year": 1963,
-      "tags": ["drink", "rum"],
-        "ingredients": [
-          { "name": "rum", "alcohol_content": 37 },
-          { "name": "coke", "alcohol_content": 0 }
+    "description": "A classic gin-based cocktail, characterized by dry vermouth and an olive.",
+    "tags": ["Classic", "Spirit-forward", "Aperitif"],
+    "ingredients": [
+      {
+        "name": "Gin",
+        "type": "Spirit",
+        "brand": {
+          "name": "Tanqueray London Dry Gin",
+          "origin_country": "England",
+          "distillery": "Diageo"
+        },
+        "amount_ml": 60,
+        "abv": 47.3,
+        "alternatives": [
+          {
+            "name": "Beefeater",
+            "origin_country": "England",
+            "distillery": "Beefeater Distillery"
+          },
+          {
+            "name": "Bombay Sapphire",
+            "origin_country": "England",
+            "distillery": "Bombay Distillery"
+          },
+          {
+            "name": "Hendrick's Gin",
+            "origin_country": "Scotland",
+            "distillery": "William Grant & Sons"
+          }
         ]
+      },
+      {
+        "name": "Dry Vermouth",
+        "type": "Fortified Wine",
+        "brand": {
+          "name": "Martini & Rossi",
+          "origin_country": "Italy",
+          "distillery": "Martini & Rossi"
+        },
+        "amount_ml": 10,
+        "abv": 15,
+        "alternatives": [
+          {
+            "name": "Noilly Prat",
+            "origin_country": "France",
+            "distillery": "Noilly Prat"
+          },
+          {
+            "name": "Dolin Dry",
+            "origin_country": "France",
+            "distillery": "Dolin & Cie"
+          }
+        ]
+      }
+    ],
+    "garnish": "Olive",
+    "glass": "Cocktail Glass",
+    "method": "Stir",
+    "abv_estimate": 36,
+    "tasting_notes": "Dry, sharp, with sophisticated herbal notes.",
+    "flavor_profile": {
+      "sweetness": 1,
+      "bitterness": 3,
+      "sourness": 0,
+      "strength": 4,
+      "freshness": 1
     },
-    {
-      "id": 3,
-      "name": "Evian",
-      "category": "Drink",
-      "year": 2020,
-      "tags": ["water"],
-      "ingredients": []
-    },
-    {
-      "id": 4,
-      "name": "Café Gin Fizz",
-      "category": "Cocktail",
-      "year": 2019,
-      "tags": ["gin", "cafe"],
-      "ingredients": [
-        { "name": "gin", "alcohol_content": 38 },
-        { "name": "lemon", "alcohol_content": 0 },
-        { "name": "syrup", "alcohol_content": 0 }
-      ]
-    },
-    {
-      "id": 5,
-      "name": "Tequila Sunrise",
-      "category": "Spirits",
-      "year": 1970,
-      "tags": ["tequila"],
-      "ingredients": [
-        { "name": "tequila", "alcohol_content": 40 },
-        { "name": "orange", "alcohol_content": 0 }
-      ]
+    "preparation_time_sec": 120,
+    "difficulty_level": "Intermediate",
+    "serving_temperature": "Chilled",
+    "variations": ["Dirty Martini", "Vesper Martini"],
+    "related_cocktails": [5, 9],
+    "media": {
+      "image_url": null,
+      "video_url": null
     }
-  ]
+  },
+  {
+    "id": 2,
+    "name": "Margarita",
+    "origin": {
+      "author": "Multiple theories, including one attributing it to Margarita Sames",
+      "year": 1938,
+      "place": "Mexico"
+    },
+    "description": "A well-balanced cocktail with tequila, lime juice, and triple sec, offering a mix of sour and sweet.",
+    "tags": ["Classic", "Sour", "Refreshing"],
+    "ingredients": [
+      {
+        "name": "Tequila",
+        "type": "Spirit",
+        "brand": {
+          "name": "Patrón Silver",
+          "origin_country": "Mexico",
+          "distillery": "Hacienda Patrón"
+        },
+        "amount_ml": 50,
+        "abv": 40,
+        "alternatives": [
+          {
+            "name": "Don Julio Blanco",
+            "origin_country": "Mexico",
+            "distillery": "Tequila Don Julio"
+          },
+          {
+            "name": "Espolòn Blanco",
+            "origin_country": "Mexico",
+            "distillery": "Campari Group"
+          }
+        ]
+      },
+      {
+        "name": "Triple Sec",
+        "type": "Liqueur",
+        "brand": {
+          "name": "Cointreau",
+          "origin_country": "France",
+          "distillery": "Rémy Cointreau"
+        },
+        "amount_ml": 20,
+        "abv": 40,
+        "alternatives": [
+          {
+            "name": "Grand Marnier",
+            "origin_country": "France",
+            "distillery": "Marnier-Lapostolle"
+          },
+          {
+            "name": "Luxardo Triplum",
+            "origin_country": "Italy",
+            "distillery": "Luxardo"
+          }
+        ]
+      },
+      {
+        "name": "Lime Juice",
+        "type": "Juice",
+        "brand": {
+          "name": "Freshly Squeezed",
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 15,
+        "abv": 0,
+        "alternatives": []
+      }
+    ],
+    "garnish": "Salt Rim + Lime Wedge",
+    "glass": "Margarita Glass",
+    "method": "Shake",
+    "abv_estimate": 28,
+    "tasting_notes": "Refreshing citrus flavor with a salt accent.",
+    "flavor_profile": {
+      "sweetness": 2,
+      "bitterness": 1,
+      "sourness": 4,
+      "strength": 3,
+      "freshness": 3
+    },
+    "preparation_time_sec": 180,
+    "difficulty_level": "Intermediate",
+    "serving_temperature": "Chilled",
+    "variations": ["Frozen Margarita", "Tommy’s Margarita"],
+    "related_cocktails": [3, 16],
+    "media": {
+      "image_url": null,
+      "video_url": null
+    }
+  },
+  {
+    "id": 3,
+    "name": "Mojito",
+    "origin": {
+      "author": "Cuban bartenders",
+      "year": 1920,
+      "place": "Havana, Cuba"
+    },
+    "description": "A refreshing cocktail made with rum, lime, and mint, perfect for hot weather.",
+    "tags": ["Classic", "Refreshing", "Summer"],
+    "ingredients": [
+      {
+        "name": "White Rum",
+        "type": "Spirit",
+        "brand": {
+          "name": "Havana Club 3 Años",
+          "origin_country": "Cuba",
+          "distillery": "Havana Club International S.A."
+        },
+        "amount_ml": 45,
+        "abv": 40,
+        "alternatives": [
+          {
+            "name": "Bacardi Superior",
+            "origin_country": "Puerto Rico",
+            "distillery": "Bacardi Limited"
+          },
+          {
+            "name": "Plantation 3 Stars",
+            "origin_country": "Caribbean",
+            "distillery": "Maison Ferrand"
+          }
+        ]
+      },
+      {
+        "name": "Lime Juice",
+        "type": "Juice",
+        "brand": {
+          "name": "Freshly Squeezed",
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 15,
+        "abv": 0,
+        "alternatives": []
+      },
+      {
+        "name": "Sugar",
+        "type": "Sweetener",
+        "brand": {
+          "name": "Cane Sugar",
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_g": 2,
+        "abv": 0,
+        "alternatives": []
+      },
+      {
+        "name": "Mint Leaves",
+        "type": "Herb",
+        "brand": {
+          "name": "Fresh",
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_pcs": 6,
+        "abv": 0,
+        "alternatives": []
+      },
+      {
+        "name": "Soda Water",
+        "type": "Carbonated",
+        "brand": {
+          "name": null,
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 60,
+        "abv": 0,
+        "alternatives": []
+      }
+    ],
+    "garnish": "Mint Sprig",
+    "glass": "Highball",
+    "method": "Build & Stir",
+    "abv_estimate": 10,
+    "tasting_notes": "Invigorating with the aroma of rum, the coolness of mint, and the sourness of lime.",
+    "flavor_profile": {
+      "sweetness": 2,
+      "bitterness": 0,
+      "sourness": 3,
+      "strength": 2,
+      "freshness": 5
+    },
+    "preparation_time_sec": 180,
+    "difficulty_level": "Beginner",
+    "serving_temperature": "Chilled",
+    "variations": ["Mojito Royal (with Champagne)"],
+    "related_cocktails": [16, 11],
+    "media": {
+      "image_url": null,
+      "video_url": null
+    }
+  },
+  {
+    "id": 4,
+    "name": "Old Fashioned",
+    "origin": {
+      "author": "J. Pepper's Bar in Louisville",
+      "year": 1880,
+      "place": "USA"
+    },
+    "description": "The original classic cocktail based on bourbon, featuring a harmony of sweetness and bitterness.",
+    "tags": ["Classic", "Spirit-forward"],
+    "ingredients": [
+      {
+        "name": "Bourbon",
+        "type": "Spirit",
+        "brand": {
+          "name": "Woodford Reserve",
+          "origin_country": "USA",
+          "distillery": "Woodford Reserve Distillery"
+        },
+        "amount_ml": 45,
+        "abv": 45.2,
+        "alternatives": [
+          {
+            "name": "Maker's Mark",
+            "origin_country": "USA",
+            "distillery": "Maker's Mark Distillery"
+          },
+          {
+            "name": "Buffalo Trace",
+            "origin_country": "USA",
+            "distillery": "Buffalo Trace Distillery"
+          }
+        ]
+      },
+      {
+        "name": "Sugar Cube",
+        "type": "Sweetener",
+        "brand": {
+          "name": "Cane Sugar Cube",
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_g": 5,
+        "abv": 0,
+        "alternatives": []
+      },
+      {
+        "name": "Angostura Bitters",
+        "type": "Bitters",
+        "brand": {
+          "name": "Angostura",
+          "origin_country": "Trinidad and Tobago",
+          "distillery": "House of Angostura"
+        },
+        "amount_dash": 2,
+        "abv": 44.7,
+        "alternatives": [
+          {
+            "name": "Peychaud's Bitters",
+            "origin_country": "USA",
+            "distillery": "Sazerac Company"
+          }
+        ]
+      }
+    ],
+    "garnish": "Orange Peel",
+    "glass": "Rocks",
+    "method": "Build & Stir",
+    "abv_estimate": 37,
+    "tasting_notes": "A woody richness woven from sweetness and bitterness.",
+    "flavor_profile": {
+      "sweetness": 2,
+      "bitterness": 3,
+      "sourness": 0,
+      "strength": 5,
+      "freshness": 1
+    },
+    "preparation_time_sec": 120,
+    "difficulty_level": "Intermediate",
+    "serving_temperature": "Room temperature or chilled",
+    "variations": ["Rum Old Fashioned"],
+    "related_cocktails": [5, 7],
+    "media": {
+      "image_url": null,
+      "video_url": null
+    }
+  },
+  {
+    "id": 5,
+    "name": "Negroni",
+    "origin": {
+      "author": "Count Camillo Negroni",
+      "year": 1919,
+      "place": "Florence, Italy"
+    },
+    "description": "A traditional Italian bitter cocktail made with equal parts gin, Campari, and sweet vermouth.",
+    "tags": ["Classic", "Bitter", "Aperitif"],
+    "ingredients": [
+      {
+        "name": "Gin",
+        "type": "Spirit",
+        "brand": {
+          "name": null,
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 30,
+        "abv": 40,
+        "alternatives": [
+          {
+            "name": "Beefeater",
+            "origin_country": "England",
+            "distillery": "Beefeater Distillery"
+          },
+          {
+            "name": "Tanqueray London Dry Gin",
+            "origin_country": "England",
+            "distillery": "Diageo"
+          }
+        ]
+      },
+      {
+        "name": "Campari",
+        "type": "Liqueur",
+        "brand": {
+          "name": "Campari",
+          "origin_country": "Italy",
+          "distillery": "Gruppo Campari"
+        },
+        "amount_ml": 30,
+        "abv": 24,
+        "alternatives": [
+          {
+            "name": "Aperol",
+            "origin_country": "Italy",
+            "distillery": "Gruppo Campari"
+          },
+          {
+            "name": "Luxardo Bitter Rosso",
+            "origin_country": "Italy",
+            "distillery": "Luxardo"
+          }
+        ]
+      },
+      {
+        "name": "Sweet Vermouth",
+        "type": "Fortified Wine",
+        "brand": {
+          "name": "Carpano Antica Formula",
+          "origin_country": "Italy",
+          "distillery": "Fratelli Branca Distillerie"
+        },
+        "amount_ml": 30,
+        "abv": 16.5,
+        "alternatives": [
+          {
+            "name": "Cocchi Storico Vermouth di Torino",
+            "origin_country": "Italy",
+            "distillery": "Giulio Cocchi Spumanti"
+          },
+          {
+            "name": "Martini & Rossi Rosso",
+            "origin_country": "Italy",
+            "distillery": "Martini & Rossi"
+          }
+        ]
+      }
+    ],
+    "garnish": "Orange Slice",
+    "glass": "Rocks",
+    "method": "Stir",
+    "abv_estimate": 24,
+    "tasting_notes": "A complex interplay of bitterness, herbs, and orange flavor.",
+    "flavor_profile": {
+      "sweetness": 1,
+      "bitterness": 5,
+      "sourness": 0,
+      "strength": 4,
+      "freshness": 2
+    },
+    "preparation_time_sec": 90,
+    "difficulty_level": "Intermediate",
+    "serving_temperature": "Chilled",
+    "variations": ["Negroni Sbagliato"],
+    "related_cocktails": [1, 14],
+    "media": {
+      "image_url": null,
+      "video_url": null
+    }
+  },
+  {
+    "id": 6,
+    "name": "Daiquiri",
+    "origin": {
+      "author": "Named after the town of Daiquirí",
+      "year": 1905,
+      "place": "Cuba"
+    },
+    "description": "A simple, sour cocktail made from white rum, lime juice, and sugar.",
+    "tags": ["Classic", "Sour"],
+    "ingredients": [
+      {
+        "name": "White Rum",
+        "type": "Spirit",
+        "brand": {
+          "name": null,
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 45,
+        "abv": 40,
+        "alternatives": [
+          {
+            "name": "Havana Club 3 Años",
+            "origin_country": "Cuba",
+            "distillery": "Havana Club International S.A."
+          },
+          {
+            "name": "Bacardi Superior",
+            "origin_country": "Puerto Rico",
+            "distillery": "Bacardi Limited"
+          }
+        ]
+      },
+      {
+        "name": "Lime Juice",
+        "type": "Juice",
+        "brand": {
+          "name": "Freshly Squeezed",
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 25,
+        "abv": 0,
+        "alternatives": []
+      },
+      {
+        "name": "Sugar",
+        "type": "Sweetener",
+        "brand": {
+          "name": "Cane Sugar",
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_g": 2,
+        "abv": 0,
+        "alternatives": []
+      }
+    ],
+    "garnish": "None",
+    "glass": "Cocktail Glass",
+    "method": "Shake",
+    "abv_estimate": 18,
+    "tasting_notes": "A good balance of refreshing sourness and sweetness.",
+    "flavor_profile": {
+      "sweetness": 2,
+      "bitterness": 0,
+      "sourness": 4,
+      "strength": 3,
+      "freshness": 3
+    },
+    "preparation_time_sec": 150,
+    "difficulty_level": "Beginner",
+    "serving_temperature": "Chilled",
+    "variations": ["Hemingway Daiquiri"],
+    "related_cocktails": [3, 16],
+    "media": {
+      "image_url": null,
+      "video_url": null
+    }
+  },
+  {
+    "id": 7,
+    "name": "Manhattan",
+    "origin": {
+      "author": "Bartender at the Manhattan Club",
+      "year": 1870,
+      "place": "New York, USA"
+    },
+    "description": "A classic cocktail of rye whiskey and sweet vermouth.",
+    "tags": ["Classic", "Spirit-forward", "Aperitif"],
+    "ingredients": [
+      {
+        "name": "Rye Whiskey",
+        "type": "Spirit",
+        "brand": {
+          "name": "Rittenhouse Rye",
+          "origin_country": "USA",
+          "distillery": "Heaven Hill Distillery"
+        },
+        "amount_ml": 50,
+        "abv": 50,
+        "alternatives": [
+          {
+            "name": "Sazerac Rye",
+            "origin_country": "USA",
+            "distillery": "Buffalo Trace Distillery"
+          },
+          {
+            "name": "Bulleit Rye",
+            "origin_country": "USA",
+            "distillery": "Diageo"
+          }
+        ]
+      },
+      {
+        "name": "Sweet Vermouth",
+        "type": "Fortified Wine",
+        "brand": {
+          "name": null,
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 20,
+        "abv": 16,
+        "alternatives": [
+          {
+            "name": "Carpano Antica Formula",
+            "origin_country": "Italy",
+            "distillery": "Fratelli Branca Distillerie"
+          },
+          {
+            "name": "Cocchi Storico Vermouth di Torino",
+            "origin_country": "Italy",
+            "distillery": "Giulio Cocchi Spumanti"
+          }
+        ]
+      },
+      {
+        "name": "Angostura Bitters",
+        "type": "Bitters",
+        "brand": {
+          "name": "Angostura",
+          "origin_country": "Trinidad and Tobago",
+          "distillery": "House of Angostura"
+        },
+        "amount_dash": 2,
+        "abv": 44.7,
+        "alternatives": []
+      }
+    ],
+    "garnish": "Maraschino Cherry",
+    "glass": "Cocktail Glass",
+    "method": "Stir",
+    "abv_estimate": 30,
+    "tasting_notes": "Characterized by spicy notes with a solid sweetness and bitterness.",
+    "flavor_profile": {
+      "sweetness": 2,
+      "bitterness": 3,
+      "sourness": 0,
+      "strength": 4,
+      "freshness": 1
+    },
+    "preparation_time_sec": 120,
+    "difficulty_level": "Intermediate",
+    "serving_temperature": "Chilled",
+    "variations": ["Perfect Manhattan"],
+    "related_cocktails": [4, 5],
+    "media": {
+      "image_url": null,
+      "video_url": null
+    }
+  },
+  {
+    "id": 8,
+    "name": "Cosmopolitan",
+    "origin": {
+      "author": "Toby Cecchini (theories vary)",
+      "year": 1987,
+      "place": "USA"
+    },
+    "description": "A fruity and sour vodka-based cocktail.",
+    "tags": ["Modern", "Fruity", "Sour"],
+    "ingredients": [
+      {
+        "name": "Vodka",
+        "type": "Spirit",
+        "brand": {
+          "name": "Absolut Citron",
+          "origin_country": "Sweden",
+          "distillery": "The Absolut Company"
+        },
+        "amount_ml": 40,
+        "abv": 40,
+        "alternatives": [
+          {
+            "name": "Ketel One",
+            "origin_country": "Netherlands",
+            "distillery": "Nolet Distillery"
+          },
+          {
+            "name": "Grey Goose",
+            "origin_country": "France",
+            "distillery": "Bacardi Limited"
+          }
+        ]
+      },
+      {
+        "name": "Triple Sec",
+        "type": "Liqueur",
+        "brand": {
+          "name": "Cointreau",
+          "origin_country": "France",
+          "distillery": "Rémy Cointreau"
+        },
+        "amount_ml": 15,
+        "abv": 40,
+        "alternatives": []
+      },
+      {
+        "name": "Lime Juice",
+        "type": "Juice",
+        "brand": {
+          "name": "Freshly Squeezed",
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 15,
+        "abv": 0,
+        "alternatives": []
+      },
+      {
+        "name": "Cranberry Juice",
+        "type": "Juice",
+        "brand": {
+          "name": "Ocean Spray",
+          "origin_country": "USA",
+          "distillery": "Ocean Spray Cranberries, Inc."
+        },
+        "amount_ml": 30,
+        "abv": 0,
+        "alternatives": []
+      }
+    ],
+    "garnish": "Lime Wedge",
+    "glass": "Cocktail Glass",
+    "method": "Shake",
+    "abv_estimate": 22,
+    "tasting_notes": "Characterized by citrus aroma and the sweet and sour taste of cranberry.",
+    "flavor_profile": {
+      "sweetness": 3,
+      "bitterness": 1,
+      "sourness": 3,
+      "strength": 3,
+      "freshness": 2
+    },
+    "preparation_time_sec": 150,
+    "difficulty_level": "Beginner",
+    "serving_temperature": "Chilled",
+    "variations": ["White Cosmopolitan"],
+    "related_cocktails": [2, 18],
+    "media": {
+      "image_url": null,
+      "video_url": null
+    }
+  },
+  {
+    "id": 9,
+    "name": "Gimlet",
+    "origin": {
+      "author": "British Royal Navy surgeon (legend)",
+      "year": 1920,
+      "place": "United Kingdom"
+    },
+    "description": "A simple and sour cocktail made with gin and lime.",
+    "tags": ["Classic", "Sour", "Spirit-forward"],
+    "ingredients": [
+      {
+        "name": "Gin",
+        "type": "Spirit",
+        "brand": {
+          "name": null,
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 60,
+        "abv": 40,
+        "alternatives": [
+          {
+            "name": "Plymouth Gin",
+            "origin_country": "England",
+            "distillery": "Plymouth Gin Distillery"
+          },
+          {
+            "name": "Tanqueray London Dry Gin",
+            "origin_country": "England",
+            "distillery": "Diageo"
+          }
+        ]
+      },
+      {
+        "name": "Lime Cordial",
+        "type": "Cordial",
+        "brand": {
+          "name": "Rose's Lime Juice",
+          "origin_country": "United Kingdom",
+          "distillery": "Rose's"
+        },
+        "amount_ml": 15,
+        "abv": 0,
+        "alternatives": [
+          {
+            "name": "Freshly Squeezed Lime Juice & Simple Syrup",
+            "origin_country": null,
+            "distillery": null
+          }
+        ]
+      }
+    ],
+    "garnish": "Lime Wheel",
+    "glass": "Cocktail Glass",
+    "method": "Shake or Stir",
+    "abv_estimate": 32,
+    "tasting_notes": "Sharp lime sourness and the herbal flavor of gin.",
+    "flavor_profile": {
+      "sweetness": 1,
+      "bitterness": 0,
+      "sourness": 4,
+      "strength": 4,
+      "freshness": 3
+    },
+    "preparation_time_sec": 90,
+    "difficulty_level": "Beginner",
+    "serving_temperature": "Chilled",
+    "variations": ["Vodka Gimlet"],
+    "related_cocktails": [1, 3],
+    "media": {
+      "image_url": null,
+      "video_url": null
+    }
+  },
+  {
+    "id": 10,
+    "name": "Bloody Mary",
+    "origin": {
+      "author": "Fernand Petiot",
+      "year": 1920,
+      "place": "USA"
+    },
+    "description": "A spicy and savory cocktail based on vodka and tomato juice.",
+    "tags": ["Classic", "Spicy", "Savory"],
+    "ingredients": [
+      {
+        "name": "Vodka",
+        "type": "Spirit",
+        "brand": {
+          "name": null,
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 45,
+        "abv": 40,
+        "alternatives": [
+          {
+            "name": "Stolichnaya",
+            "origin_country": "Latvia",
+            "distillery": "Stoli Group"
+          },
+          {
+            "name": "Ketel One",
+            "origin_country": "Netherlands",
+            "distillery": "Nolet Distillery"
+          }
+        ]
+      },
+      {
+        "name": "Tomato Juice",
+        "type": "Juice",
+        "brand": {
+          "name": null,
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 90,
+        "abv": 0,
+        "alternatives": [
+          {
+            "name": "Clamato",
+            "origin_country": "Canada",
+            "distillery": "Keurig Dr Pepper"
+          },
+          {
+            "name": "Sacramento Tomato Juice",
+            "origin_country": "USA",
+            "distillery": "Red Gold"
+          }
+        ]
+      },
+      {
+        "name": "Worcestershire Sauce",
+        "type": "Seasoning",
+        "brand": {
+          "name": "Lea & Perrins",
+          "origin_country": "United Kingdom",
+          "distillery": "Kraft Heinz"
+        },
+        "amount_ml": 2,
+        "abv": 0,
+        "alternatives": [
+          {
+            "name": "Henderson's Relish",
+            "origin_country": "United Kingdom",
+            "distillery": "Henderson's (Sheffield) Ltd"
+          }
+        ]
+      },
+      {
+        "name": "Hot Sauce",
+        "type": "Seasoning",
+        "brand": {
+          "name": "Tabasco",
+          "origin_country": "USA",
+          "distillery": "McIlhenny Company"
+        },
+        "amount_ml": 1,
+        "abv": 0,
+        "alternatives": [
+          {
+            "name": "Frank's RedHot",
+            "origin_country": "USA",
+            "distillery": "McCormick & Company"
+          },
+          {
+            "name": "Cholula Hot Sauce",
+            "origin_country": "Mexico",
+            "distillery": "McCormick & Company"
+          }
+        ]
+      },
+      {
+        "name": "Celery Salt",
+        "type": "Seasoning",
+        "brand": {
+          "name": null,
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_g": 1,
+        "abv": 0,
+        "alternatives": []
+      },
+      {
+        "name": "Lemon Juice",
+        "type": "Juice",
+        "brand": {
+          "name": "Freshly Squeezed",
+          "origin_country": null,
+          "distillery": null
+        },
+        "amount_ml": 15,
+        "abv": 0,
+        "alternatives": []
+      }
+    ],
+    "garnish": "Celery Stick or Pickle",
+    "glass": "Highball",
+    "method": "Build",
+    "abv_estimate": 10,
+    "tasting_notes": "A spicy and rich tomato flavor.",
+    "flavor_profile": {
+      "sweetness": 1,
+      "bitterness": 2,
+      "sourness": 2,
+      "strength": 3,
+      "freshness": 2,
+      "spiciness": 4
+    },
+    "preparation_time_sec": 120,
+    "difficulty_level": "Intermediate",
+    "serving_temperature": "Chilled",
+    "variations": ["Red Snapper (with Gin)"],
+    "related_cocktails": [12],
+    "media": {
+      "image_url": null,
+      "video_url": null
+    }
+  },
+  {
+      "id": 11,
+      "name": "Whiskey Sour",
+      "origin": {
+          "author": "Henry Weinhard",
+          "year": 1870,
+          "place": "USA"
+      },
+      "description": "A balanced sour cocktail with whiskey, lemon juice, and sugar.",
+      "tags": [
+          "Classic",
+          "Sour"
+      ],
+      "ingredients": [
+          {
+              "name": "Bourbon Whiskey",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Buffalo Trace",
+                  "origin_country": "USA",
+                  "distillery": "Buffalo Trace Distillery"
+              },
+              "amount_ml": 45,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Elijah Craig Small Batch",
+                      "origin_country": "USA",
+                      "distillery": "Heaven Hill"
+                  },
+                  {
+                      "name": "Wild Turkey 101",
+                      "origin_country": "USA",
+                      "distillery": "Wild Turkey Distillery"
+                  }
+              ]
+          },
+          {
+              "name": "Lemon Juice",
+              "type": "Juice",
+              "brand": {
+                  "name": "Fresh",
+                  "origin_country": null
+              },
+              "amount_ml": 30,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Sugar Syrup",
+              "type": "Sweetener",
+              "brand": {
+                  "name": null,
+                  "origin_country": null
+              },
+              "amount_ml": 15,
+              "abv": 0,
+              "alternatives": []
+          }
+      ],
+      "garnish": "Cherry and Orange Slice",
+      "glass": "Old Fashioned Glass",
+      "method": "Shake",
+      "abv_estimate": 22,
+      "tasting_notes": "Balanced tartness and sweetness.",
+      "flavor_profile": {
+          "sweetness": 3,
+          "bitterness": 0,
+          "sourness": 4,
+          "strength": 3,
+          "freshness": 2
+      },
+      "preparation_time_sec": 120,
+      "difficulty_level": "Beginner",
+      "serving_temperature": "Chilled",
+      "variations": [
+          "New York Sour"
+      ],
+      "related_cocktails": [
+          4,
+          10
+      ],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  },
+  {
+      "id": 12,
+      "name": "Sidecar",
+      "origin": {
+          "author": "Unknown",
+          "year": 1920,
+          "place": "France or Belgium"
+      },
+      "description": "A classic cocktail with cognac, lemon juice, and triple sec.",
+      "tags": [
+          "Classic",
+          "Sour"
+      ],
+      "ingredients": [
+          {
+              "name": "Cognac",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Hennessy",
+                  "origin_country": "France",
+                  "distillery": "Jas Hennessy & Co"
+              },
+              "amount_ml": 50,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Rémy Martin VSOP",
+                      "origin_country": "France",
+                      "distillery": "Rémy Cointreau"
+                  },
+                  {
+                      "name": "Courvoisier VS",
+                      "origin_country": "France",
+                      "distillery": "Courvoisier"
+                  }
+              ]
+          },
+          {
+              "name": "Triple Sec",
+              "type": "Liqueur",
+              "brand": {
+                  "name": "Cointreau",
+                  "origin_country": "France",
+                  "distillery": "Rémy Cointreau"
+              },
+              "amount_ml": 20,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Grand Marnier",
+                      "origin_country": "France",
+                      "distillery": "Rémy Cointreau"
+                  },
+                  {
+                      "name": "Luxardo Triplum",
+                      "origin_country": "Italy",
+                      "distillery": "Luxardo"
+                  }
+              ]
+          },
+          {
+              "name": "Lemon Juice",
+              "type": "Juice",
+              "brand": {
+                  "name": "Fresh",
+                  "origin_country": null
+              },
+              "amount_ml": 20,
+              "abv": 0,
+              "alternatives": []
+          }
+      ],
+      "garnish": "Lemon Twist",
+      "glass": "Cocktail Glass",
+      "method": "Shake",
+      "abv_estimate": 28,
+      "tasting_notes": "Tart with refined cognac aroma.",
+      "flavor_profile": {
+          "sweetness": 2,
+          "bitterness": 0,
+          "sourness": 4,
+          "strength": 4,
+          "freshness": 3
+      },
+      "preparation_time_sec": 120,
+      "difficulty_level": "Intermediate",
+      "serving_temperature": "Chilled",
+      "variations": [],
+      "related_cocktails": [
+          11
+      ],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  },
+  {
+      "id": 13,
+      "name": "Pina Colada",
+      "origin": {
+          "author": "Ramón Monserrat",
+          "year": 1954,
+          "place": "Puerto Rico"
+      },
+      "description": "A sweet tropical cocktail with rum, coconut cream, and pineapple juice.",
+      "tags": [
+          "Tropical",
+          "Sweet",
+          "Summer"
+      ],
+      "ingredients": [
+          {
+              "name": "White Rum",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Don Q Gold",
+                  "origin_country": "Puerto Rico",
+                  "distillery": "Destilería Serrallés"
+              },
+              "amount_ml": 45,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Plantation 3 Stars",
+                      "origin_country": "Caribbean",
+                      "distillery": "Maison Ferrand"
+                  },
+                  {
+                      "name": "Flor de Caña 4 Extra Seco",
+                      "origin_country": "Nicaragua",
+                      "distillery": "Licorera Cía Ltda"
+                  }
+              ]
+          },
+          {
+              "name": "Coconut Cream",
+              "type": "Cream",
+              "brand": {
+                  "name": "Goya",
+                  "origin_country": "USA"
+              },
+              "amount_ml": 30,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Pineapple Juice",
+              "type": "Juice",
+              "brand": {
+                  "name": "Dole",
+                  "origin_country": "Hawaii",
+                  "distillery": null
+              },
+              "amount_ml": 90,
+              "abv": 0,
+              "alternatives": []
+          }
+      ],
+      "garnish": "Pineapple Slice and Cherry",
+      "glass": "Hurricane Glass",
+      "method": "Blend",
+      "abv_estimate": 13,
+      "tasting_notes": "Rich coconut and sweet pineapple harmony.",
+      "flavor_profile": {
+          "sweetness": 5,
+          "bitterness": 0,
+          "sourness": 2,
+          "strength": 2,
+          "freshness": 3
+      },
+      "preparation_time_sec": 180,
+      "difficulty_level": "Beginner",
+      "serving_temperature": "Chilled",
+      "variations": [],
+      "related_cocktails": [
+          3,
+          16
+      ],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  },
+  {
+      "id": 14,
+      "name": "Tom Collins",
+      "origin": {
+          "author": "John Collins",
+          "year": 1876,
+          "place": "USA"
+      },
+      "description": "A refreshing gin and lemon juice with soda water long drink.",
+      "tags": [
+          "Classic",
+          "Refreshing",
+          "Sour"
+      ],
+      "ingredients": [
+          {
+              "name": "Gin",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Beefeater",
+                  "origin_country": "England",
+                  "distillery": "Beefeater Distillery"
+              },
+              "amount_ml": 45,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Bombay Sapphire",
+                      "origin_country": "England",
+                      "distillery": "Bombay Distillery"
+                  },
+                  {
+                      "name": "Broker's Gin",
+                      "origin_country": "England",
+                      "distillery": "Broker's Distillery"
+                  }
+              ]
+          },
+          {
+              "name": "Lemon Juice",
+              "type": "Juice",
+              "brand": {
+                  "name": "Fresh",
+                  "origin_country": null
+              },
+              "amount_ml": 30,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Sugar Syrup",
+              "type": "Sweetener",
+              "brand": {
+                  "name": null,
+                  "origin_country": null
+              },
+              "amount_ml": 15,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Soda Water",
+              "type": "Carbonated",
+              "brand": {
+                  "name": null,
+                  "origin_country": null
+              },
+              "amount_ml": 90,
+              "abv": 0,
+              "alternatives": []
+          }
+      ],
+      "garnish": "Lemon Slice and Cherry",
+      "glass": "Highball",
+      "method": "Build & Stir",
+      "abv_estimate": 10,
+      "tasting_notes": "Refreshing and aromatic.",
+      "flavor_profile": {
+          "sweetness": 2,
+          "bitterness": 0,
+          "sourness": 3,
+          "strength": 2,
+          "freshness": 4
+      },
+      "preparation_time_sec": 150,
+      "difficulty_level": "Beginner",
+      "serving_temperature": "Chilled",
+      "variations": [],
+      "related_cocktails": [
+          3,
+          9
+      ],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  },
+  {
+      "id": 15,
+      "name": "Caipirinha",
+      "origin": {
+          "author": null,
+          "year": 1918,
+          "place": "Brazil"
+      },
+      "description": "Brazil's national cocktail made with cachaça, lime, and sugar.",
+      "tags": [
+          "Classic",
+          "Sweet",
+          "Sour"
+      ],
+      "ingredients": [
+          {
+              "name": "Cachaça",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Leblon",
+                  "origin_country": "Brazil"
+              },
+              "amount_ml": 50,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "51 Cachaça",
+                      "origin_country": "Brazil",
+                      "distillery": null
+                  },
+                  {
+                      "name": "Pombo Gold",
+                      "origin_country": "Brazil",
+                      "distillery": null
+                  }
+              ]
+          },
+          {
+              "name": "Lime",
+              "type": "Fruit",
+              "brand": {
+                  "name": "Fresh",
+                  "origin_country": null
+              },
+              "amount_pcs": 1,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Sugar",
+              "type": "Sweetener",
+              "brand": {
+                  "name": "Cane Sugar",
+                  "origin_country": null
+              },
+              "amount_g": 2,
+              "abv": 0,
+              "alternatives": []
+          }
+      ],
+      "garnish": "None",
+      "glass": "Old Fashioned Glass",
+      "method": "Build & Muddle",
+      "abv_estimate": 14,
+      "tasting_notes": "Lime acidity and sugar sweetness stand out.",
+      "flavor_profile": {
+          "sweetness": 3,
+          "bitterness": 0,
+          "sourness": 3,
+          "strength": 3,
+          "freshness": 3
+      },
+      "preparation_time_sec": 120,
+      "difficulty_level": "Beginner",
+      "serving_temperature": "Chilled",
+      "variations": [],
+      "related_cocktails": [
+          3,
+          13
+      ],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  },
+  {
+      "id": 16,
+      "name": "Mai Tai",
+      "origin": {
+          "author": "Victor Jorgensen",
+          "year": 1944,
+          "place": "California, USA"
+      },
+      "description": "A tropical rum-based cocktail with orange curaçao and lime.",
+      "tags": [
+          "Tropical",
+          "Sweet",
+          "Classic"
+      ],
+      "ingredients": [
+          {
+              "name": "White Rum",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Bacardi",
+                  "origin_country": "Cuba"
+              },
+              "amount_ml": 30,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Plantation 3 Stars",
+                      "origin_country": "Caribbean",
+                      "distillery": "Maison Ferrand"
+                  }
+              ]
+          },
+          {
+              "name": "Dark Rum",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Myers's",
+                  "origin_country": "Jamaica"
+              },
+              "amount_ml": 30,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Goslings Black Seal",
+                      "origin_country": "Bermuda",
+                      "distillery": "Gosling Brothers"
+                  }
+              ]
+          },
+          {
+              "name": "Orange Curacao",
+              "type": "Liqueur",
+              "brand": {
+                  "name": "Grand Marnier",
+                  "origin_country": "France"
+              },
+              "amount_ml": 15,
+              "abv": 30,
+              "alternatives": [
+                  {
+                      "name": "Cointreau",
+                      "origin_country": "France",
+                      "distillery": "Rémy Cointreau"
+                  }
+              ]
+          },
+          {
+              "name": "Lime Juice",
+              "type": "Juice",
+              "brand": {
+                  "name": "Fresh",
+                  "origin_country": null
+              },
+              "amount_ml": 15,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Orgeat Syrup",
+              "type": "Sweetener",
+              "brand": {
+                  "name": "Trader Joe's",
+                  "origin_country": "USA"
+              },
+              "amount_ml": 15,
+              "abv": 0,
+              "alternatives": []
+          }
+      ],
+      "garnish": "Mint Sprig and Lime Wheel",
+      "glass": "Old Fashioned Glass",
+      "method": "Shake",
+      "abv_estimate": 25,
+      "tasting_notes": "Fruity and nutty with lime's acidity.",
+      "flavor_profile": {
+          "sweetness": 4,
+          "bitterness": 0,
+          "sourness": 3,
+          "strength": 3,
+          "freshness": 3
+      },
+      "preparation_time_sec": 180,
+      "difficulty_level": "Intermediate",
+      "serving_temperature": "Chilled",
+      "variations": [],
+      "related_cocktails": [
+          13,
+          15
+      ],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  },
+  {
+      "id": 17,
+      "name": "Paloma",
+      "origin": {
+          "author": null,
+          "year": 1950,
+          "place": "Mexico"
+      },
+      "description": "A refreshing long drink with tequila and grapefruit soda.",
+      "tags": [
+          "Refreshing",
+          "Sour",
+          "Modern"
+      ],
+      "ingredients": [
+          {
+              "name": "Tequila",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Jose Cuervo",
+                  "origin_country": "Mexico"
+              },
+              "amount_ml": 50,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Patrón Silver",
+                      "origin_country": "Mexico",
+                      "distillery": "Hacienda Patrón"
+                  },
+                  {
+                      "name": "Espolòn Blanco",
+                      "origin_country": "Mexico",
+                      "distillery": "Campari Group"
+                  }
+              ]
+          },
+          {
+              "name": "Grapefruit Soda",
+              "type": "Carbonated",
+              "brand": {
+                  "name": "Squirt",
+                  "origin_country": "USA"
+              },
+              "amount_ml": 100,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Lime Juice",
+              "type": "Juice",
+              "brand": {
+                  "name": "Fresh",
+                  "origin_country": null
+              },
+              "amount_ml": 10,
+              "abv": 0,
+              "alternatives": []
+          }
+      ],
+      "garnish": "Salt Rim and Lime Wedge",
+      "glass": "Highball",
+      "method": "Build",
+      "abv_estimate": 15,
+      "tasting_notes": "Citrus and salt balanced for refreshment.",
+      "flavor_profile": {
+          "sweetness": 2,
+          "bitterness": 1,
+          "sourness": 3,
+          "strength": 3,
+          "freshness": 4
+      },
+      "preparation_time_sec": 90,
+      "difficulty_level": "Beginner",
+      "serving_temperature": "Chilled",
+      "variations": [
+          "Paloma Fizz"
+      ],
+      "related_cocktails": [
+          2,
+          15
+      ],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  },
+  {
+      "id": 18,
+      "name": "French 75",
+      "origin": {
+          "author": "Unknown",
+          "year": 1915,
+          "place": "France"
+      },
+      "description": "An elegant sparkling cocktail with gin and champagne.",
+      "tags": [
+          "Classic",
+          "Sparkling",
+          "Elegant"
+      ],
+      "ingredients": [
+          {
+              "name": "Gin",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Bombay Sapphire",
+                  "origin_country": "England",
+                  "distillery": "Bombay Distillery"
+              },
+              "amount_ml": 30,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Tanqueray",
+                      "origin_country": "England",
+                      "distillery": "Diageo"
+                  },
+                  {
+                      "name": "Beefeater",
+                      "origin_country": "England",
+                      "distillery": "Beefeater Distillery"
+                  }
+              ]
+          },
+          {
+              "name": "Lemon Juice",
+              "type": "Juice",
+              "brand": {
+                  "name": "Fresh",
+                  "origin_country": null
+              },
+              "amount_ml": 15,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Sugar Syrup",
+              "type": "Sweetener",
+              "brand": {
+                  "name": null,
+                  "origin_country": null
+              },
+              "amount_ml": 10,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Champagne",
+              "type": "Sparkling Wine",
+              "brand": {
+                  "name": "Moët & Chandon",
+                  "origin_country": "France",
+                  "distillery": "Moët & Chandon"
+              },
+              "amount_ml": 60,
+              "abv": 12,
+              "alternatives": []
+          }
+      ],
+      "garnish": "Lemon Twist",
+      "glass": "Flute",
+      "method": "Shake and Top with Champagne",
+      "abv_estimate": 18,
+      "tasting_notes": "Bright and floral, with citrus aroma.",
+      "flavor_profile": {
+          "sweetness": 2,
+          "bitterness": 0,
+          "sourness": 3,
+          "strength": 3,
+          "freshness": 4
+      },
+      "preparation_time_sec": 150,
+      "difficulty_level": "Intermediate",
+      "serving_temperature": "Chilled",
+      "variations": [],
+      "related_cocktails": [
+          1
+      ],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  },
+  {
+      "id": 19,
+      "name": "Aviation",
+      "origin": {
+          "author": "Hugo Ensslin",
+          "year": 1916,
+          "place": "New York, USA"
+      },
+      "description": "A floral, slightly sour classic cocktail made with gin, lemon juice, maraschino liqueur, and crème de violette.",
+      "tags": [
+          "Classic",
+          "Floral",
+          "Sour",
+          "Elegant"
+      ],
+      "ingredients": [
+          {
+              "name": "Dry Gin",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Tanqueray",
+                  "origin_country": "England",
+                  "distillery": "Diageo"
+              },
+              "amount_ml": 60,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Beefeater",
+                      "origin_country": "England",
+                      "distillery": "Beefeater Distillery"
+                  },
+                  {
+                      "name": "Bombay Sapphire",
+                      "origin_country": "England",
+                      "distillery": "Bombay Distillery"
+                  }
+              ]
+          },
+          {
+              "name": "Lemon Juice",
+              "type": "Juice",
+              "brand": {
+                  "name": "Fresh",
+                  "origin_country": null
+              },
+              "amount_ml": 20,
+              "abv": 0,
+              "alternatives": []
+          },
+          {
+              "name": "Maraschino Liqueur",
+              "type": "Liqueur",
+              "brand": {
+                  "name": "Luxardo",
+                  "origin_country": "Italy",
+                  "distillery": "Luxardo"
+              },
+              "amount_ml": 15,
+              "abv": 32,
+              "alternatives": []
+          },
+          {
+              "name": "Crème de Violette",
+              "type": "Liqueur",
+              "brand": {
+                  "name": "Parfait Amour",
+                  "origin_country": "France",
+                  "distillery": "Giffard"
+              },
+              "amount_ml": 5,
+              "abv": 20,
+              "alternatives": []
+          }
+      ],
+      "garnish": "Maraschino cherry",
+      "glass": "Cocktail Glass",
+      "method": "Shake and double strain",
+      "abv_estimate": 22,
+      "tasting_notes": "Floral aroma with citrus and gentle bitterness.",
+      "flavor_profile": {
+          "sweetness": 3,
+          "bitterness": 1,
+          "sourness": 4,
+          "strength": 3,
+          "freshness": 4,
+          "floral": 5
+      },
+      "preparation_time_sec": 150,
+      "difficulty_level": "Intermediate",
+      "serving_temperature": "Chilled",
+      "variations": [
+          "Omit Crème de Violette",
+          "Use Crème Yvette"
+      ],
+      "related_cocktails": [
+          8,
+          9
+      ],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  },
+  {
+      "id": 20,
+      "name": "Espresso Martini",
+      "origin": {
+          "author": "Dick Bradsell",
+          "year": 1980,
+          "place": "London, England"
+      },
+      "description": "A modern coffee cocktail with espresso, vodka, and coffee liqueur, balancing bitterness and sweetness.",
+      "tags": [
+          "Coffee",
+          "Modern",
+          "Sweet"
+      ],
+      "ingredients": [
+          {
+              "name": "Vodka",
+              "type": "Spirit",
+              "brand": {
+                  "name": "Absolut",
+                  "origin_country": "Sweden",
+                  "distillery": "Pernod Ricard"
+              },
+              "amount_ml": 40,
+              "abv": 40,
+              "alternatives": [
+                  {
+                      "name": "Ketel One",
+                      "origin_country": "Netherlands",
+                      "distillery": "Nolet Distillery"
+                  },
+                  {
+                      "name": "Grey Goose",
+                      "origin_country": "France",
+                      "distillery": "Bacardi Limited"
+                  }
+              ]
+          },
+          {
+              "name": "Coffee Liqueur",
+              "type": "Liqueur",
+              "brand": {
+                  "name": "Kahlua",
+                  "origin_country": "Mexico",
+                  "distillery": "Kahlua LLC"
+              },
+              "amount_ml": 20,
+              "abv": 20,
+              "alternatives": []
+          },
+          {
+              "name": "Fresh Espresso",
+              "type": "Coffee",
+              "brand": {
+                  "name": null,
+                  "origin_country": null
+              },
+              "amount_ml": 30,
+              "abv": 0,
+              "alternatives": []
+          }
+      ],
+      "garnish": "Coffee Beans",
+      "glass": "Cocktail Glass",
+      "method": "Shake",
+      "abv_estimate": 25,
+      "tasting_notes": "Balanced bitterness and sweetness, smooth and creamy.",
+      "flavor_profile": {
+          "sweetness": 3,
+          "bitterness": 4,
+          "sourness": 0,
+          "strength": 3,
+          "freshness": 1
+      },
+      "preparation_time_sec": 150,
+      "difficulty_level": "Intermediate",
+      "serving_temperature": "Chilled",
+      "variations": [],
+      "related_cocktails": [],
+      "media": {
+          "image_url": null,
+          "video_url": null
+      }
+  }
+]
   

@@ -216,14 +216,16 @@ interface QuantifiedNode extends CirNode {
 
 | DSLクエリ | AST (主要ノード) | CIR (主要ノード) |
 | :--- | :--- | :--- |
-| `name:"ジン"` | `TextShorthandExpression` | `TextNode` (op: 'contains', path: `{ type: 'Path', segments: ['name'] }`) |
-| `ingredients.name:"ジン"` | `TextShorthandExpression` | `QuantifiedNode` (quantifier: 'any', path: `{ type: 'Path', segments: ['ingredients'] }`, predicate: `TextNode`) |
+| `name:"ジン"` | `TextShorthandExpression` | `TextNode` (op: 'contains', path: `{ segments: ['name'] }`) |
+| `ingredients.name:"ジン"` | `TextShorthandExpression` | `QuantifiedNode` (quantifier: 'any', path: `{ segments: ['ingredients'] }`, predicate: `TextNode`) |
+| `ingredients.alternatives.name:"Beefeater"` | `TextShorthandExpression` | `QuantifiedNode` (quantifier: 'any', path: `{ segments: ['ingredients'] }`, predicate: `QuantifiedNode(any, alternatives, TextNode)`) |
 | `alcohol_content:(>5, <13)` | `TextShorthandExpression` + `ValueListExpression` | `AndNode` (children: `ComparisonNode` x 2) |
 | `name:("A", "B")` | `TextShorthandExpression` + `ValueListExpression` | `OrNode` (children: `TextNode` x 2) |
 | `NOT (A OR B)` | `UnaryExpression('NOT')` + `LogicalExpression('OR')` | `AndNode` (children: `NotNode(A)`, `NotNode(B)`) |
 
-サンプル内のCIRにおける path は、すべて `{ type: 'Path', segments: [...] }` 形式に統一してください。  
+サンプル内のCIRにおける path は、すべて `{ type: 'Path', segments: [...] }` 形式に統一してください。
 **注意**:テキスト演算の照合は `Evaluator` のオプションに依存するため、CIR の構造は不変でも、評価結果は `ignoreCase` と `foldDiacritics`、`locale` の組み合わせで変化し得る。
+
 ---
 
 ### 付録: 変更履歴（抜粋）

@@ -446,14 +446,13 @@ function normalizeTextShorthand(ast: TextShorthandExpression, options: Normalize
   throw new Error(`Unsupported value type in TextShorthandExpression: ${(valueNode as any).type}`);
 }
 
-// src/cir/normalize.ts
 
-// --- C-11: 配列ショートハンド（ドット区切りパス）を Quantified(any) へ単段ラップするヘルパー ---
+// 配列ショートハンド（ドット区切りパス）を Quantified(any) へ再帰的にラップするヘルパー ---
 /**
- * C-11: 単段ラップで配列ショートハンドを Quantified(any) に変換する。
+ * 多段ラップで配列ショートハンドを Quantified(any) に変換する。
  * 対象: Text/Comparison のみ。path.segments.length > 1 の場合に [head, ...tail] を
  *  - outer: Quantified.any with path=[head]
- *  - inner: 同型ノード(Text/Comparison) with path=[tail]
+ *  - inner: 同型ノード(Text/Comparison) または QuantifiedNode with path=[tail]
  * 非対象: And/Or/Not/Quantified（呼び出し側で子要素に対して適用）。
  */
 function normalizeArrayPathShortcut(node: CirNode): CirNode {
@@ -475,33 +474,32 @@ function normalizeArrayPathShortcut(node: CirNode): CirNode {
   const outerPath: Path = { type: 'Path', segments: [head] };
   const innerPath: Path = { type: 'Path', segments: tail };
 
+  let innerNode: CirNode; // innerNodeの型をCirNodeに変更
+
   if (node.type === 'Text') {
-    const inner: TextNode = {
+    innerNode = {
       type: 'Text',
       path: innerPath,
       op: node.op,
       value: node.value,
     };
-    return {
-      type: 'Quantified',
-      quantifier: 'any',
-      path: outerPath,
-      predicate: inner,
+  } else { // node.type === 'Comparison'
+    innerNode = {
+      type: 'Comparison',
+      path: innerPath,
+      op: node.op,
+      value: node.value,
     };
   }
 
-  // node.type === 'Comparison'
-  const inner: ComparisonNode = {
-    type: 'Comparison',
-    path: innerPath,
-    op: node.op,
-    value: node.value,
-  };
+  // ここで再帰的に呼び出すことで多段ラップを実現
+  const predicate = normalizeArrayPathShortcut(innerNode); 
+
   return {
     type: 'Quantified',
     quantifier: 'any',
     path: outerPath,
-    predicate: inner,
+    predicate: predicate,
   };
 }
 
