@@ -455,9 +455,20 @@ JSONデータでは、一つのキーに対して複数の値を配列として�
 
 
 ### **8.3 ショートハンド（暗黙の `any`）**
+
 配列フィールドに対して直接条件を記述した場合、自動的に `any` が適用されます。これは最も一般的なユースケースを簡潔に記述するための仕様です。
-- **DSL**: `ingredients.name:"ジン"`
-- **解釈**: `any(ingredients, contains(name, "ジン"))`
+
+このショートハンドは**複数階層の配列に対しても再帰的に適用**されます。
+
+-   **DSL (単一階層)**: `ingredients.name:"ジン"`
+-   **解釈**: `any(ingredients, contains(name, "ジン"))`
+
+-   **DSL (複数階層)**: `ingredients.alternatives.name:"Beefeater"`
+-   **解釈**: `any(ingredients, any(alternatives, contains(name, "Beefeater")))`
+
+このように、深い階層の配列であっても、利用者は配列の存在を意識することなく、直感的にフィールドをドットで繋いでクエリを記述できます。
+
+
 
 ### **8.4 同一要素内AND**
 配列の **同じ要素内**で複数の条件を同時に満たす必要がある場合、配列名の直後で条件を `()` でグルーピングします。

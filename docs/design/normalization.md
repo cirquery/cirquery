@@ -61,27 +61,39 @@ ASTの `ValueListExpression` を、CIRの `AndNode` または `OrNode` に変換
 
 #### **ルールC: 配列ショートハンドの展開**
 
-フィールドパスが複数のセグメントで構成される場合（例: `ingredients.name`）、その操作を明示的な `QuantifiedNode` に正規化します。これは、ユーザーが`any()`を明示的に書かなくても、ドット記法（例: `ingredients.name`）で配列内オブジェクトのフィールドを検索できる、直感的なショートハンドを提供するための実装です。
+フィールドパスが複数のセグメントで構成される場合（例: `ingredients.name`）、その操作を明示的な `QuantifiedNode` に正規化します。これは、ユーザーが`any()`を明示的に書かなくても、ドット記法で配列内オブジェクトのフィールドを検索できる、直感的なショートハンドを提供するための実装です。
+
+この正規化は**再帰的**に適用され、複数階層の配列を持つ複雑なデータ構造に対しても、直感的なクエリを可能にします。
 
 -   **対象**: CIRに変換された後の `TextNode` や `ComparisonNode` が持つパス構造。
--   **トリガー条件**: パスのセグメントが2つ以上存在する場合（例: `['ingredients', 'name']`）。
+-   **トリガー条件**: パスのセグメントが2つ以上存在する場合（例: `['ingredients', 'alternatives', 'name']`）。
 
--   **変換前 (AST)**: `ingredients.name:"ジン"`
--   **初期CIR**: `{ type: 'Text', path: {segments:['ingredients', 'name']}, op: 'contains', value: ... }`
--   **正規化後CIR**: パスの最初のセグメントを `QuantifiedNode` の `path` とし、残りのパスを持つ条件を `inner` に設定します。
-    ```json
+-   **変換前 (AST)**: `ingredients.alternatives.name:"Beefeater"`
+-   **初期CIR**: `{ type: 'Text', path: {segments:['ingredients', 'alternatives', 'name']}, op: 'contains', value: { type: 'StringLiteral', value: 'Beefeater' } }`
+-   **正規化後CIR**: パスのセグメントが再帰的に展開され、ネストした `QuantifiedNode` が生成されます。
+    ```
     {
         "type": "Quantified",
         "quantifier": "any",
         "path": { "type": "Path", "segments": ["ingredients"] },
-        "predicate": { "type": "Text", "path": { "type": "Path", "segments": ["name"] }, ... }
+        "predicate": {
+            "type": "Quantified",
+            "quantifier": "any",
+            "path": { "type": "Path", "segments": ["alternatives"] },
+            "predicate": {
+                "type": "Text",
+                "path": { "type": "Path", "segments": ["name"] },
+                "op": "contains",
+                "value": { "type": "StringLiteral", "value": "Beefeater" }
+            }
+        }
     }
     ```
 
-> **実装注記**: この変換ロジックは、正規化プロセスの後半で適用することを推奨します。まずASTから基本的なCIRノード（`TextNode`や`ComparisonNode`）を生成し、その後、そのノードが持つ`path`を検査して、必要であれば`QuantifiedNode`でラップするという2段階の処理が考えられます。  
+> **実装注記**: この変換ロジックは、正規化プロセスの後半で適用することを推奨します。まずASTから基本的なCIRノード（`TextNode`や`ComparisonNode`）を生成し、その後、そのノードが持つ`path`を検査して、必要であれば`QuantifiedNode`で再帰的にラップするという処理が考えられます。
 >この変換は**純粋に構文的なもの**であり、対象フィールドが実際に配列かどうかを知る必要はありません。この抽象化は、後段の`Evaluator`や`Adapter`が「単一オブジェクトを要素数1の配列とみなす」などの戦略で吸収します。これにより、正規化処理はデータ構造に依存しない、高速で単純な変換であり続けることができます。
-- 本実装では単段ラップ: `segments=[head, ...tail]` の場合に限り、`Quantified(any).path=[head]`とし、`predicate` 側で `path=[tail]` を保持します（多段ラップは v0.1 の対象外）。
-- 適用ポイントは「正規化の共通出口」および`OR`/`AND` の `children` 構築時で、 `Text`/`Comparison` のみに適用します（（`And`/`Or`/`Not`/`Quantified`）自体は対象外）。これにより、配列ショートハンドは常に末端条件に対して一貫して適用されます。
+- 本実装ではパスのセグメントを再帰的に評価します。例えば `a.b.c` というパスは `Quantified(a, Quantified(b, Comparison(c)))` のように、ネストされた `QuantifiedNode` に変換されます。これにより、複数階層の配列に対しても直感的なクエリが可能です。
+- 適用ポイントは「正規化の共通出口」および`OR`/`AND` の `children` 構築時で、 `Text`/`Comparison` のみに適用します（`And`/`Or`/`Not`/`Quantified`自体は対象外）。これにより、配列ショートハンドは常に末端条件に対して一貫して適用されます。
 - `Path` 表現は `{ type:'Path', segments:[...] }` に統一します（外側/内側とも）。
 
 - **補足**: 量化子のpredicateにおける配列要素参照（予約パス value）  
