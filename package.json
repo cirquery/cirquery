@@ -1,6 +1,6 @@
 {
   "name": "cirquery",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Core Common/Intermediate Representation for transforming human-friendly query DSLs to backend adapters.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -28,7 +28,6 @@
     "play:dev": "vite --config examples/playground-json/vite.config.ts",
     "play:build": "vite build --config examples/playground-json/vite.config.ts",
     "play:preview": "vite preview --config examples/playground-json/vite.config.ts"
-  
   },
   "repository": {
     "type": "git",
