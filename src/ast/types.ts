@@ -11,6 +11,8 @@ export type AstNode =
   | LogicalExpression
   | UnaryExpression
   | ComparisonExpression
+  | ArithmeticExpression
+  | NegateExpression
   | TextShorthandExpression
   | ComparisonShorthand
   | CallExpression
@@ -56,12 +58,21 @@ export type Expression =
   | LogicalExpression
   | UnaryExpression
   | ComparisonExpression
+  | ArithmeticExpression
+  | NegateExpression
   | TextShorthandExpression
   | CallExpression
   | GroupExpression
   | ValueListExpression
   | PathNode
   | LiteralNode;
+
+// 比較の辺になれる式（v0.3）: パス / リテラル / 演算式 / 単項マイナス
+export type OperandExpression =
+  | PathNode
+  | LiteralNode
+  | ArithmeticExpression
+  | NegateExpression;
 
 // A AND B, A OR B
 export interface LogicalExpression extends BaseNode {
@@ -78,13 +89,27 @@ export interface UnaryExpression extends BaseNode {
   argument: Expression;
 }
 
-// path OP literal 例: alcohol_content > 20
+// operand OP operand 例: alcohol_content > 20, price * qty >= 1000（v0.3で辺を一般化）
 // docsでは演算子は文字列リテラルで保持し、CIRで正規化（gt/gte等）します。
 export interface ComparisonExpression extends BaseNode {
   type: 'ComparisonExpression';
   operator: '=' | '!=' | '>' | '>=' | '<' | '<=';
-  left: PathNode;
-  right: LiteralNode;
+  left: OperandExpression;
+  right: OperandExpression;
+}
+
+// 演算式（v0.3）: price * qty, (amount + tax) / 2 など。左結合の二項木。
+export interface ArithmeticExpression extends BaseNode {
+  type: 'ArithmeticExpression';
+  operator: '+' | '-' | '*' | '/' | '%';
+  left: OperandExpression;
+  right: OperandExpression;
+}
+
+// 単項マイナス（v0.3）: -price。数値リテラルへの適用はビジターが負数リテラルに畳む。
+export interface NegateExpression extends BaseNode {
+  type: 'NegateExpression';
+  argument: OperandExpression;
 }
 
 // path: value / path: (>5, <13) などの省略形

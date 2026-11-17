@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { parse } from '../src/parser';
 import { normalize } from '../src/cir/normalize';
 import { buildPredicate } from '../src/cir/evaluator';
-import { cirToSql } from '../src/adapters/sqlite';
+import { toSqliteQuery } from '../src/adapters/sqlite';
 import {
   ParseError,
   NormalizeError,
@@ -99,15 +99,15 @@ describe('[F-3] Error Handling', () => {
         path: { type: 'Path', segments: ['ingredients'] },
         predicate: {
           type: 'Comparison',
-          path: { type: 'Path', segments: ['alcohol_content'] },
+          left: { type: 'Path', segments: ['alcohol_content'] },
           op: 'gt',
-          value: { type: 'NumberLiteral', value: 0 },
+          right: { type: 'NumberLiteral', value: 0 },
         },
       };
-  
+
       try {
         // このCIRノードがAdapterErrorを引き起こすはず
-        cirToSql(unsupportedCir as any);
+        toSqliteQuery(unsupportedCir as any, { table: 'docs' });
         expect.fail('AdapterError was not thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(AdapterError);

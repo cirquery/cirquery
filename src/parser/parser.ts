@@ -1,6 +1,11 @@
 // src/parser/parser.ts
 // 目的: tokens.ts のトークンを用いてCSTを生成するChevrotainパーサーを提供。
 // 参照: docs/design/parser.md #4 文法設計, #3.2 トークン定義コード, #3.3 補足
+//
+// v0.3 文法変更（docs/design/v030-arithmetic-adapters.md D-2）:
+// - 優先順位: OR < AND < NOT < 比較 < 加減 < 乗除剰余 < 単項マイナス/因子
+// - 比較の両辺は演算式になれる（例: price * qty >= 1000）
+// - path: value のショートハンドは、GATE（前方読み）で判別して専用ルールに分離
 import { CstParser } from 'chevrotain';
 import {
   allTokens,
@@ -30,6 +35,11 @@ import {
   Any,
   All,
   None,
+  Plus,
+  Minus,
+  Star,
+  Slash,
+  Percent,
 } from './tokens.ts';
 // パーサー本体
 export class DslParser extends CstParser {
@@ -72,69 +82,106 @@ export class DslParser extends CstParser {
       },
       {
         // NOTがない場合は次の優先順位のルールへ
-        ALT: () => this.SUBRULE(this.atomicExpression)
+        ALT: () => this.SUBRULE(this.comparisonExpression)
       },
     ]);
   });
-  // ★★★ 最も重要な変更箇所 ★★★
-  // 曖昧さを解決するため、アトミックな（＝それ以上分解できない）要素を定義  // 曖昧性解決戦略:
-  // 'path > 10' と 'path' のような共通の接頭辞を持つルールが競合するため、
-  // 左共通部分の括りだし（Left Factoring）を適用する。
-  // - atomic: group / call / literal / pathBased（この順）
-  // - literal に StringLiteral を含める（関数引数の "x" を確実に値として受ける）
-  public atomicExpression = this.RULE('atomicExpression', () => {
+
+  // 比較式: operand (比較演算子 operand)? または path: ショートハンド
+  // ショートハンドは先頭が fieldPath かつ直後が Colon の場合のみ（GATEで判別）。
+  // それ以外は演算式として読み、比較演算子が続けば ComparisonExpression になる。
+  public comparisonExpression = this.RULE('comparisonExpression', () => {
     this.OR([
-      // 1. 括弧や、特定のキーワードで始まるルールは曖昧さがない
+      {
+        GATE: () => this.isColonShorthandAhead(),
+        ALT: () => this.SUBRULE(this.pathShorthand),
+      },
+      {
+        ALT: () => {
+          this.SUBRULE(this.additiveExpression, { LABEL: 'lhs' });
+          this.OPTION(() => {
+            this.SUBRULE(this.comparisonOperator);
+            this.SUBRULE2(this.additiveExpression, { LABEL: 'rhs' });
+          });
+        },
+      },
+    ]);
+  });
+
+  // path: value / path: (>5, <13) / path: ("A", "B") の省略形
+  public pathShorthand = this.RULE('pathShorthand', () => {
+    this.SUBRULE(this.fieldPath);
+    this.CONSUME(Colon);
+    this.OR([
+      { ALT: () => this.SUBRULE(this.literal) },
+      { ALT: () => this.SUBRULE(this.valueList) },
+      { ALT: () => this.SUBRULE(this.comparisonShorthand) },
+    ]);
+  });
+
+  // 加減: term (('+' | '-') term)*  左結合
+  public additiveExpression = this.RULE('additiveExpression', () => {
+    this.SUBRULE(this.term, { LABEL: 'lhs' });
+    this.MANY(() => {
+      this.OR([
+        { ALT: () => this.CONSUME(Plus) },
+        { ALT: () => this.CONSUME(Minus) },
+      ]);
+      this.SUBRULE2(this.term, { LABEL: 'rhs' });
+    });
+  });
+
+  // 乗除剰余: factor (('*' | '/' | '%') factor)*  左結合
+  public term = this.RULE('term', () => {
+    this.SUBRULE(this.factor, { LABEL: 'lhs' });
+    this.MANY(() => {
+      this.OR([
+        { ALT: () => this.CONSUME(Star) },
+        { ALT: () => this.CONSUME(Slash) },
+        { ALT: () => this.CONSUME(Percent) },
+      ]);
+      this.SUBRULE2(this.factor, { LABEL: 'rhs' });
+    });
+  });
+
+  // 因子: 括弧 / 関数呼び出し / 単項マイナス / リテラル / パス
+  public factor = this.RULE('factor', () => {
+    this.OR([
       { ALT: () => this.SUBRULE(this.groupExpression) },
       { ALT: () => this.SUBRULE(this.callExpression) },
       {
+        // -数値 は literal 側（Minus + NumberLiteral）が受けるため、ここでは除外する。
+        // これにより <Minus, NumberLiteral> 接頭辞の曖昧さを解消する。
+        GATE: () => this.LA(2).tokenType !== NumberLiteral,
         ALT: () => {
-          this.OR2([
-            { ALT: () => this.CONSUME(StringLiteral) },
-            { ALT: () => this.CONSUME(NumberLiteral) },
-            { ALT: () => this.CONSUME(True) },
-            { ALT: () => this.CONSUME(False) },
-            { ALT: () => this.CONSUME(Null) },
-          ]);
+          this.CONSUME(Minus);
+          this.SUBRULE(this.factor, { LABEL: 'negated' });
         },
       },
-    {
-      ALT: () => this.SUBRULE(this.pathBasedExpression),
-    },
-  ]);
-});
-  // pathで始まる式の曖昧さを解決するための専用ルール（GATEで呼び出し元が制御される）
-  /**
- * pathで始まる式のCSTノードをASTに変換する。
- * CSTノード内に comparisonOperator や Colon が存在するかどうかで、
- * 生成するASTノード（ComparisonExpression, TextShorthandExpression, PathNode）を決定する
- * ディスパッチャ（分岐役）として機能する。
- */
-   // - 先頭が Identifier のときだけ pathBased を起動（GATE）
-  // - fieldPath は 先頭Identifier限定、Dot以降は Identifier | StringLiteral を許容
-  public pathBasedExpression = this.RULE('pathBasedExpression', () => {
-    this.SUBRULE(this.fieldPath);
-    this.OPTION(() => {
-      this.OR([
-        {
-          ALT: () => {
-            this.SUBRULE(this.comparisonOperator);
-            this.SUBRULE(this.literal);
-          },
-        },
-        {          
-          ALT: () => {
-            this.CONSUME(Colon);
-            this.OR2([
-              { ALT: () => this.SUBRULE2(this.literal) },
-              { ALT: () => this.SUBRULE(this.valueList) },
-              { ALT: () => this.SUBRULE(this.comparisonShorthand) },
-            ]);
-          },
-        },
-      ]);
-    });
+      { ALT: () => this.SUBRULE(this.literal) },
+      { ALT: () => this.SUBRULE(this.fieldPath) },
+    ]);
   });
+
+  // GATE: 入力が「fieldPath の直後に Colon」かどうかを前方読みで判定する。
+  // fieldPath は Identifier (. (Identifier|StringLiteral))* の形。
+  private isColonShorthandAhead(): boolean {
+    if (this.LA(1).tokenType !== Identifier) return false;
+    let i = 2;
+    for (;;) {
+      const dot = this.LA(i);
+      const seg = this.LA(i + 1);
+      if (
+        dot.tokenType === Dot &&
+        (seg.tokenType === Identifier || seg.tokenType === StringLiteral)
+      ) {
+        i += 2;
+        continue;
+      }
+      break;
+    }
+    return this.LA(i).tokenType === Colon;
+  }
 
   // 比較演算子をまとめたヘルパールール
   public comparisonOperator = this.RULE('comparisonOperator', () => {
@@ -216,13 +263,7 @@ public callArgumentsQuantifier = this.RULE('callArgumentsQuantifier', () => {
   
   // path: Identifier(.Identifier)* | StringLiteral(.Identifier)*
   public fieldPath = this.RULE('fieldPath', () => {
-    // 先頭は Identifierのみ 
-    /*
-    this.OR([
-      { ALT: () => this.CONSUME(Identifier) },
-      { ALT: () => this.CONSUME(StringLiteral) }, // パス内のクオート識別子はここで受ける
-    ]);
-    */
+    // 先頭は Identifierのみ
     this.CONSUME(Identifier);
     // 後続は Dot の後に Identifier か StringLiteral（クォート識別子）を許容
     this.MANY(() => {
@@ -233,11 +274,16 @@ public callArgumentsQuantifier = this.RULE('callArgumentsQuantifier', () => {
       ]);
     });
   });
-  // literal: string | number | true | false | null
+  // literal: string | number | true | false | null | -number（v0.3: 符号はMinusトークン）
   public literal = this.RULE('literal', () => {
     this.OR([
       { ALT: () => this.CONSUME(StringLiteral) },
-      { ALT: () => this.CONSUME(NumberLiteral) },
+      {
+        ALT: () => {
+          this.OPTION(() => this.CONSUME(Minus));
+          this.CONSUME(NumberLiteral);
+        },
+      },
       { ALT: () => this.CONSUME(True) },
       { ALT: () => this.CONSUME(False) },
       { ALT: () => this.CONSUME(Null) },

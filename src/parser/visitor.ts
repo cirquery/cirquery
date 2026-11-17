@@ -83,73 +83,107 @@ import type {
           argument: this.visit(ctx.argument),
         } as AstUnaryExpression;
       }
-      // NOTがない場合はatomicExpressionの結果をそのまま返す
-      return this.visit(ctx.atomicExpression);
+      // NOTがない場合はcomparisonExpressionの結果をそのまま返す
+      return this.visit(ctx.comparisonExpression);
+    }
+
+    // 比較式: ショートハンド / 演算式 (比較演算子 演算式)?
+    comparisonExpression(ctx: any): AstExpression {
+      if (ctx.pathShorthand) return this.visit(ctx.pathShorthand[0]);
+
+      const left = this.visit(ctx.lhs[0]);
+      if (ctx.comparisonOperator) {
+        const operator = this.visit(ctx.comparisonOperator[0]) as AstComparisonExpression['operator'];
+        const right = this.visit(ctx.rhs[0]);
+        return {
+          type: 'ComparisonExpression',
+          left,
+          operator,
+          right,
+        } as AstComparisonExpression;
+      }
+      // 比較演算子がなければ、演算式（パス/リテラル/関数/演算）の結果をそのまま返す
+      return left;
+    }
+
+    // path: value の省略形
+    pathShorthand(ctx: any): AstExpression {
+      const path = this.visit(ctx.fieldPath[0]) as AstPathNode;
+      let value: AstTextShorthandExpression['value'];
+      if (ctx.literal) {
+        value = this.visit(ctx.literal[0]) as AstStringLiteralNode;
+      } else if (ctx.valueList) {
+        value = this.visit(ctx.valueList[0]) as AstValueListExpression;
+      } else {
+        value = this.visit(ctx.comparisonShorthand[0]) as AstComparisonShorthand;
+      }
+      return {
+        type: 'TextShorthandExpression',
+        path,
+        value,
+      } as AstTextShorthandExpression;
+    }
+
+    // 加減（左結合の二項木へ畳む）
+    additiveExpression(ctx: any): AstExpression {
+      return this.foldBinary(ctx, [
+        ['Plus', '+'],
+        ['Minus', '-'],
+      ]);
+    }
+
+    // 乗除剰余（左結合の二項木へ畳む）
+    term(ctx: any): AstExpression {
+      return this.foldBinary(ctx, [
+        ['Star', '*'],
+        ['Slash', '/'],
+        ['Percent', '%'],
+      ]);
+    }
+
+    // 二項演算子の繰り返し（lhs (op rhs)*）を左結合のASTへ変換する共通処理。
+    // 演算子トークンと rhs は出現順（startOffset順）に整列して対応付ける。
+    private foldBinary(ctx: any, opTokens: Array<[string, string]>): AstExpression {
+      let astNode = this.visit(ctx.lhs[0]);
+      if (!ctx.rhs) return astNode;
+
+      const ops = opTokens
+        .flatMap(([key, symbol]) => (ctx[key] || []).map((t: IToken) => ({ offset: t.startOffset, symbol })))
+        .sort((a: any, b: any) => a.offset - b.offset);
+      const rhsNodes = [...ctx.rhs].sort(
+        (a: any, b: any) => (a.location?.startOffset ?? 0) - (b.location?.startOffset ?? 0)
+      );
+
+      rhsNodes.forEach((rhsCst: any, i: number) => {
+        const op = ops[i];
+        if (!op) throw new Error('foldBinary: operator not found for rhs');
+        astNode = {
+          type: 'ArithmeticExpression',
+          operator: op.symbol,
+          left: astNode,
+          right: this.visit(rhsCst),
+        } as AstExpression;
+      });
+      return astNode;
+    }
+
+    // 因子: 括弧 / 関数 / 単項マイナス / リテラル / パス
+    factor(ctx: any): AstExpression {
+      if (ctx.groupExpression) return this.visit(ctx.groupExpression[0]);
+      if (ctx.callExpression) return this.visit(ctx.callExpression[0]);
+      if (ctx.Minus) {
+        const inner = this.visit(ctx.negated[0]);
+        // 数値リテラルへの単項マイナスは負数リテラルに畳む
+        if (inner.type === 'NumberLiteral') {
+          return { type: 'NumberLiteral', value: -inner.value } as AstNumberLiteralNode;
+        }
+        return { type: 'NegateExpression', argument: inner } as AstExpression;
+      }
+      if (ctx.literal) return this.visit(ctx.literal[0]);
+      if (ctx.fieldPath) return this.visit(ctx.fieldPath[0]);
+      throw new Error('Unsupported factor alternative');
     }
   
-    // ★★★ 新しいルールに対応 ★★★
-    atomicExpression(ctx: any): AstExpression {
-        // 優先度の高い分岐：グルーピングとコール
-        if (ctx.groupExpression) return this.visit(ctx.groupExpression[0]);
-        if (ctx.callExpression) return this.visit(ctx.callExpression[0]);
-
-        // パス起点の式（path, path:..., path <op> literal）はここで処理
-        if (ctx.pathBasedExpression) return this.visit(ctx.pathBasedExpression[0]);
-    
-        // 純粋なリテラル（String/Number/true/false/null）はここで直接処理
-        // これらはliteralルールを経由せず直接CONSUMEされているため、ここで処理
-        if (ctx.StringLiteral) return this.buildLiteralNode(ctx.StringLiteral[0]);
-        if (ctx.NumberLiteral) return this.buildLiteralNode(ctx.NumberLiteral[0]);
-        // ★★★ 修正点 ★★★
-        if (ctx.True) return this.buildLiteralNode(ctx.True[0]);
-        if (ctx.False) return this.buildLiteralNode(ctx.False[0]);
-        if (ctx.Null) return this.buildLiteralNode(ctx.Null[0]);
-    
-        throw new Error('Unsupported atomicExpression alternative');
-      }
-    
-    // ★★★ 新しいルールに対応 ★★★
-    pathBasedExpression(ctx: any): AstExpression {
-        const path = this.visit(ctx.fieldPath[0]) as AstPathNode;
-    
-        // 1. path > literal (ComparisonExpression)
-        if (ctx.comparisonOperator) {
-          // ★★★ 最も重要な修正点 ★★★
-          // comparisonOperatorのCSTノード配列の「最初の要素」をvisitする
-          const operator = this.visit(ctx.comparisonOperator[0]) as AstComparisonExpression['operator'];
-          const value = this.visit(ctx.literal[0]) as AstLiteralNode;
-          return {
-            type: 'ComparisonExpression',
-            left: path,
-            operator,
-            right: value,
-          } as AstComparisonExpression;
-        }
-    
-        // 2. path : value (TextShorthandExpression)
-        if (ctx.Colon) {
-          let value: AstTextShorthandExpression['value'];
-          // ★★★ 念のための修正 ★★★
-          if (ctx.literal) {
-            value = this.visit(ctx.literal[0]) as AstStringLiteralNode;
-          } else if (ctx.valueList) {
-            value = this.visit(ctx.valueList[0]) as AstValueListExpression;
-          } else { // comparisonShorthand
-            value = this.visit(ctx.comparisonShorthand[0]) as AstComparisonShorthand;
-          }
-          return {
-            type: 'TextShorthandExpression',
-            path,
-            value,
-          } as AstTextShorthandExpression;
-        }
-    
-        // 3. path のみ (truthy)
-        // 何も続かない場合はPathNodeをそのまま返す
-        return path;
-      }  
-
-      
     groupExpression(ctx: any): AstExpression {
       return this.visit(ctx.expression);
     }
@@ -296,7 +330,12 @@ callExpression(ctx: any): AstCallExpression {
     literal(ctx: any): AstLiteralNode {
       const token = ctx.StringLiteral?.[0] || ctx.NumberLiteral?.[0] || ctx.True?.[0] || ctx.False?.[0] || ctx.Null?.[0];
       if (!token) throw new Error("Literal token not found");
-      return this.buildLiteralNode(token);
+      const node = this.buildLiteralNode(token);
+      // v0.3: Minus トークン + 数値リテラルは負数リテラルとして組み立てる
+      if (ctx.Minus && node.type === 'NumberLiteral') {
+        return { type: 'NumberLiteral', value: -node.value };
+      }
+      return node;
     }
   
     // ---- ユーティリティメソッド ----

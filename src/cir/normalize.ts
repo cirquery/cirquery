@@ -1,8 +1,8 @@
 // src/cir/normalize.ts
 // AST → CIR 正規化: docs/spec/ast-cir.mdに準拠
 
-import type { Expression, LogicalExpression, UnaryExpression, ComparisonExpression, TextShorthandExpression, CallExpression, PathNode, LiteralNode, ComparisonShorthand } from '../ast/types.ts';
-import type { CirNode, AndNode, OrNode, NotNode, ComparisonNode, TextNode, QuantifiedNode, Path, Literal, StringLiteral } from './types.ts';
+import type { Expression, LogicalExpression, UnaryExpression, ComparisonExpression, TextShorthandExpression, CallExpression, PathNode, LiteralNode, ComparisonShorthand, OperandExpression } from '../ast/types.ts';
+import type { CirNode, AndNode, OrNode, NotNode, ComparisonNode, TextNode, QuantifiedNode, Path, Literal, StringLiteral, CirExpr, ArithmeticNode, NegNode } from './types.ts';
 import { isComparison, isNot, isAnd, isOr, isQuantified } from './types.ts';
 
 // src/cir/normalize.ts 冒頭のインポートに追加
@@ -20,7 +20,7 @@ import { NormalizeError } from '../errors/errors.ts';
 
 // normalize関数が返しうるすべての型を表現する
 type NormalizableNode = Expression | CirNode;
-type NormalizedResult = CirNode | Path | Literal; // PathとLiteralを明示的に追加
+type NormalizedResult = CirNode | Path | Literal | ArithmeticNode | NegNode; // PathとLiteralを明示的に追加
 type NormalizeOptions = {
   textSearchTargets?: Array<string | Path>;
 };
@@ -51,6 +51,10 @@ export function normalize(ast: NormalizableNode, options: NormalizeOptions = {})
  */
 function ensureCirNode(node: NormalizedResult, options: NormalizeOptions): CirNode {
   switch (node.type) {
+    case 'Arithmetic':
+    case 'Neg':
+      // 演算式単体は真偽条件にならない（比較の辺としてのみ意味を持つ）
+      throw new Error('normalize: an arithmetic expression cannot be used as a condition by itself');
     case 'Path':
       return normalizeTruthyField(node, options);
     case 'StringLiteral':
@@ -79,6 +83,10 @@ function normalizeNode(ast: NormalizableNode, options: NormalizeOptions): Normal
     // ... 他の normalizeXXX 関数も同様
     case 'ComparisonExpression':
       return normalizeComparison(ast, options);
+    case 'ArithmeticExpression':
+    case 'NegateExpression':
+      // 比較の辺としては normalizeComparison が処理する。単体では式部品として返す。
+      return normalizeOperand(ast);
     case 'TextShorthandExpression':
       return normalizeTextShorthand(ast, options);
     case 'CallExpression':
@@ -239,9 +247,9 @@ function normalizeTruthyField(ast: PathNode, options: NormalizeOptions): CirNode
 
   const node: ComparisonNode = {
     type: 'Comparison',
-    path,
+    left: path,
     op: 'neq',
-    value,
+    right: value,
   };
 
   return node;
@@ -298,6 +306,47 @@ function normalizeLiteral(ast: LiteralNode): Literal {
     }
   }
 
+// 比較の辺（オペランド）をASTからCIR式へ変換する（v0.3）
+function normalizeOperand(ast: OperandExpression): CirExpr {
+  switch (ast.type) {
+    case 'Path':
+      return { type: 'Path', segments: ast.segments };
+    case 'StringLiteral':
+    case 'NumberLiteral':
+    case 'BooleanLiteral':
+    case 'NullLiteral':
+      return normalizeLiteral(ast);
+    case 'ArithmeticExpression': {
+      const opMap: { [key in typeof ast.operator]: ArithmeticNode['op'] } = {
+        '+': 'add', '-': 'sub', '*': 'mul', '/': 'div', '%': 'mod',
+      };
+      const left = normalizeOperand(ast.left);
+      const right = normalizeOperand(ast.right);
+      // 演算のオペランドは数値系のみ（パス / 数値リテラル / 演算 / 単項マイナス）。
+      // 文字列・真偽・null が混ざる式は意味論が定義できないため、ここで弾く。
+      for (const side of [left, right]) {
+        if (side.type === 'StringLiteral' || side.type === 'BooleanLiteral' || side.type === 'NullLiteral') {
+          return failUnsupportedNode('ArithmeticExpression', `non-numeric operand: ${side.type}`);
+        }
+      }
+      return { type: 'Arithmetic', op: opMap[ast.operator], left, right };
+    }
+    case 'NegateExpression': {
+      const arg = normalizeOperand(ast.argument);
+      // 数値リテラルへの単項マイナスは負数リテラルに畳む（ビジターでも畳むが、手書きASTに備える）
+      if (arg.type === 'NumberLiteral') {
+        return { type: 'NumberLiteral', value: -arg.value };
+      }
+      if (arg.type === 'StringLiteral' || arg.type === 'BooleanLiteral' || arg.type === 'NullLiteral') {
+        return failUnsupportedNode('NegateExpression', `non-numeric operand: ${arg.type}`);
+      }
+      return { type: 'Neg', arg };
+    }
+    default:
+      return failUnsupportedNode((ast as any).type ?? 'Unknown');
+  }
+}
+
 // 比較ノードの変換 (=, !=, >, etc)
 function normalizeComparison(ast: ComparisonExpression, options: NormalizeOptions): ComparisonNode {
     // ASTの演算子をCIRのopにマッピング
@@ -309,25 +358,18 @@ function normalizeComparison(ast: ComparisonExpression, options: NormalizeOption
       '<': 'lt',
       '<=': 'lte',
     };
-  
+
     const op = opMap[ast.operator];
     if (!op) {
       // このパスは型システム上は到達不能のはず
       throw new Error(`Unknown comparison operator: ${ast.operator}`);
     }
-  
-    // ASTノードからCIRノードの各パーツを構築
-    const path: Path = { type: 'Path', segments: ast.left.segments };
-    const value: Literal = normalizeLiteral(ast.right); // ここでヘルパー関数を利用
-  
-    // デバッグ用のログ出力（保守性のため）
-    // console.debug(`[normalizeComparison] ${path.segments.join('.')} ${op} ${'value' in value ? value.value : 'null'}`);
-  
+
     return {
       type: 'Comparison',
-      path,
+      left: normalizeOperand(ast.left),
       op,
-      value,
+      right: normalizeOperand(ast.right),
     };
   }
   
@@ -345,9 +387,9 @@ function normalizeTextShorthand(ast: TextShorthandExpression, options: Normalize
     };
     return {
       type: 'Comparison',
-      path,
+      left: path,
       op: opMap[shorthand.operator],
-      value: normalizeLiteral(shorthand.value),
+      right: normalizeLiteral(shorthand.value),
     };
   }
 
@@ -367,9 +409,9 @@ function normalizeTextShorthand(ast: TextShorthandExpression, options: Normalize
   if (valueNode.type === 'NumberLiteral') {
     return {
       type: 'Comparison',
-      path,
+      left: path,
       op: 'eq', // デフォルトは 'eq'
-      value: normalizeLiteral(valueNode),
+      right: normalizeLiteral(valueNode),
     };
   }
 
@@ -426,9 +468,9 @@ function normalizeTextShorthand(ast: TextShorthandExpression, options: Normalize
         };
         return applyArrayWrapIfLeaf({
           type: 'Comparison',
-          path,
+          left: path,
           op: opMap[cs.operator],
-          value: normalizeLiteral(cs.value),
+          right: normalizeLiteral(cs.value),
         } as ComparisonNode);
       });
       if (children.length === 1) {
@@ -455,51 +497,86 @@ function normalizeTextShorthand(ast: TextShorthandExpression, options: Normalize
  *  - inner: 同型ノード(Text/Comparison) または QuantifiedNode with path=[tail]
  * 非対象: And/Or/Not/Quantified（呼び出し側で子要素に対して適用）。
  */
+// 式に現れるすべてのパスを集める（配列ラップの判定用）
+function collectExprPaths(expr: CirExpr, acc: Path[]): void {
+  switch (expr.type) {
+    case 'Path':
+      acc.push(expr);
+      return;
+    case 'Arithmetic':
+      collectExprPaths(expr.left, acc);
+      collectExprPaths(expr.right, acc);
+      return;
+    case 'Neg':
+      collectExprPaths(expr.arg, acc);
+      return;
+    default:
+      return; // リテラルにはパスはない
+  }
+}
+
+// 式内のすべてのパスの先頭セグメントを取り除く（要素相対への付け替え）
+function rebaseExpr(expr: CirExpr): CirExpr {
+  switch (expr.type) {
+    case 'Path':
+      return { type: 'Path', segments: expr.segments.slice(1) };
+    case 'Arithmetic':
+      return { ...expr, left: rebaseExpr(expr.left), right: rebaseExpr(expr.right) };
+    case 'Neg':
+      return { ...expr, arg: rebaseExpr(expr.arg) };
+    default:
+      return expr; // リテラルはそのまま
+  }
+}
+
 function normalizeArrayPathShortcut(node: CirNode): CirNode {
-  // 比較・テキスト以外はそのまま
-  if (node.type !== 'Comparison' && node.type !== 'Text') return node;
-
-  const segs = node.path.segments;
-  if (!Array.isArray(segs) || segs.length <= 1) return node;
-
-  const head = segs[0];
-  const tail = segs.slice(1);
-
-  // 型・実行時の双方で安全にするためのガード
-  if (head === undefined || tail.length === 0) {
-    // head が undefined になることは length > 1 の論理上は起きないが、型推論の安全対策
-    return node;
-  }
-
-  const outerPath: Path = { type: 'Path', segments: [head] };
-  const innerPath: Path = { type: 'Path', segments: tail };
-
-  let innerNode: CirNode; // innerNodeの型をCirNodeに変更
-
+  // テキストは単一パスのみ（従来規則）
   if (node.type === 'Text') {
-    innerNode = {
+    const segs = node.path.segments;
+    if (!Array.isArray(segs) || segs.length <= 1) return node;
+    const head = segs[0];
+    if (head === undefined) return node;
+    const innerNode: CirNode = {
       type: 'Text',
-      path: innerPath,
+      path: { type: 'Path', segments: segs.slice(1) },
       op: node.op,
       value: node.value,
     };
-  } else { // node.type === 'Comparison'
-    innerNode = {
-      type: 'Comparison',
-      path: innerPath,
-      op: node.op,
-      value: node.value,
+    return {
+      type: 'Quantified',
+      quantifier: 'any',
+      path: { type: 'Path', segments: [head] },
+      predicate: normalizeArrayPathShortcut(innerNode),
     };
   }
+
+  // 比較・テキスト以外はそのまま
+  if (node.type !== 'Comparison') return node;
+
+  // v0.3: 式内のパスがすべて「同じ先頭セグメント＋長さ2以上」なら量化子へラップする。
+  // 先頭が混在する式（例: items.price + tax > 100）はラップしない（設計メモ D-4）。
+  const paths: Path[] = [];
+  collectExprPaths(node.left, paths);
+  collectExprPaths(node.right, paths);
+  if (paths.length === 0) return node;
+
+  const head = paths[0]?.segments[0];
+  if (head === undefined) return node;
+  const wrappable = paths.every((p) => p.segments.length >= 2 && p.segments[0] === head);
+  if (!wrappable) return node;
+
+  const innerNode: CirNode = {
+    ...node,
+    left: rebaseExpr(node.left),
+    right: rebaseExpr(node.right),
+  };
 
   // ここで再帰的に呼び出すことで多段ラップを実現
-  const predicate = normalizeArrayPathShortcut(innerNode); 
-
   return {
     type: 'Quantified',
     quantifier: 'any',
-    path: outerPath,
-    predicate: predicate,
+    path: { type: 'Path', segments: [head] },
+    predicate: normalizeArrayPathShortcut(innerNode),
   };
 }
 

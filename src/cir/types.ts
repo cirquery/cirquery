@@ -61,16 +61,37 @@ export interface NotNode {
   // 基本方針は“消す（反転する）”だが、運用・保守上の選択肢として残存も許容する。
 }
 
+// 式（v0.3）: 比較の辺になれる値の木。パス / リテラル / 演算 / 単項マイナス。
+export type CirExpr = Path | Literal | ArithmeticNode | NegNode;
+
+// 演算式（v0.3）: add/sub/mul/div/mod。意味論は docs/spec/ast-cir.md を参照:
+// - オペランドが欠落（パス解決が undefined）を含む演算は「値なし」になる
+// - ゼロ除算・ゼロ剰余は「値なし」になる
+// - 数値でない値への演算は評価エラー（E_EVAL_TYPE_MISMATCH）
+export interface ArithmeticNode {
+  type: 'Arithmetic';
+  op: 'add' | 'sub' | 'mul' | 'div' | 'mod';
+  left: CirExpr;
+  right: CirExpr;
+}
+
+// 単項マイナス（v0.3）
+export interface NegNode {
+  type: 'Neg';
+  arg: CirExpr;
+}
+
 // 比較（=, !=, >, >=, <, <=）は正規化済みの op を使用
+// v0.3: path/value 形式から left/right の式形式に統一（破壊的変更。設計メモ D-1）
 export interface ComparisonNode {
   type: 'Comparison';
-  path: Path;
+  left: CirExpr;
   op: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte';
-  value: Literal;
+  right: CirExpr;
   // D-6（比較反転最適化）補足:
   // 正規化で NOT(Comparison) は演算子反転により NotNode を除去してこの ComparisonNode に畳み込まれる。
-  // 例: NOT (price > 10) → Comparison(op: 'lte', value: 10)
-  //     NOT (category = "A") → Comparison(op: 'neq', value: "A")
+  // 例: NOT (price > 10) → Comparison(op: 'lte', right: 10)
+  //     NOT (category = "A") → Comparison(op: 'neq', right: "A")
 }
 
 // テキスト演算（contains, startsWith, endsWith）
@@ -117,4 +138,10 @@ export function isText(node: CirNode): node is TextNode {
 }
 export function isQuantified(node: CirNode): node is QuantifiedNode {
   return node.type === 'Quantified';
+}
+export function isArithmetic(node: CirExpr): node is ArithmeticNode {
+  return node.type === 'Arithmetic';
+}
+export function isNeg(node: CirExpr): node is NegNode {
+  return node.type === 'Neg';
 }
