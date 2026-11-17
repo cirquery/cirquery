@@ -9,9 +9,9 @@ import type { CirNode } from "../src/cir/types.ts";
 function pathNode(segments: string[]) {
   return {
     type: "Comparison",
-    path: { type: 'Path', segments },
+    left: { type: 'Path', segments },
     op: "neq",
-    value: { type: "NullLiteral" }
+    right: { type: "NullLiteral" }
   };
 }
 
@@ -66,16 +66,16 @@ it("should push down NOT with De Morgan", () => {
       // D-6導入後: Not(Comparison(neq,null)) → Comparison(eq,null)
       {
         type: "Comparison",
-        path: { type: 'Path', segments: ['A'] },
+        left: { type: 'Path', segments: ['A'] },
         op: 'eq',
-        value: { type: 'NullLiteral' },
+        right: { type: 'NullLiteral' },
       },
       // 旧: { type: "Not", child: pathNode(["B"]) },
       {
         type: "Comparison",
-        path: { type: 'Path', segments: ['B'] },
+        left: { type: 'Path', segments: ['B'] },
         op: 'eq',
-        value: { type: 'NullLiteral' },
+        right: { type: 'NullLiteral' },
       },
     ]
   });
@@ -101,14 +101,14 @@ it("should push down NOT with De Morgan", () => {
         { type: "Not", child: pathNode(["B"]) }
         */
         { type: "Comparison",
-          path: { type: 'Path', segments: ['A'] },
+          left: { type: 'Path', segments: ['A'] },
           op: 'eq',
-          value: { type: 'NullLiteral'}
+          right: { type: 'NullLiteral'}
         },
         { type: "Comparison",
-          path: { type: 'Path', segments: ['B'] },
+          left: { type: 'Path', segments: ['B'] },
           op: 'eq',
-          value: { type: 'NullLiteral'}
+          right: { type: 'NullLiteral'}
         }
       ]
     });
@@ -121,9 +121,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
 
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments:['price'] },
+      left: { type: 'Path', segments:['price'] },
       op: 'gt',
-      value: { type: 'NumberLiteral', value: 1000 },
+      right: { type: 'NumberLiteral', value: 1000 },
     });
   });
 
@@ -134,9 +134,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
 
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments:['category'] },
+      left: { type: 'Path', segments:['category'] },
       op: 'eq',
-      value: { type: 'StringLiteral', value: 'Spirits' },
+      right: { type: 'StringLiteral', value: 'Spirits' },
     });
   });
 
@@ -147,9 +147,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
 
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments:['notes'] },
+      left: { type: 'Path', segments:['notes'] },
       op: 'neq',
-      value: { type: 'NullLiteral' },
+      right: { type: 'NullLiteral' },
     });
   });
 
@@ -174,9 +174,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
 
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments:['year'] },
+      left: { type: 'Path', segments:['year'] },
       op: 'eq',
-      value: { type: 'NumberLiteral', value: 1954 },
+      right: { type: 'NumberLiteral', value: 1954 },
     });
   });
 
@@ -186,9 +186,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
 
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments:['rating'] },
+      left: { type: 'Path', segments:['rating'] },
       op: 'gt',
-      value: { type: 'NumberLiteral', value: 4.5 },
+      right: { type: 'NumberLiteral', value: 4.5 },
     });
   });
 
@@ -262,9 +262,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
       path: { type: 'Path', segments:['ingredients'] },
       predicate: {
         type: 'Comparison',
-        path: { type: 'Path', segments:['alcohol_content'] },
+        left: { type: 'Path', segments:['alcohol_content'] },
         op: 'gt',
-        value: { type: 'NumberLiteral', value: 20 },
+        right: { type: 'NumberLiteral', value: 20 },
       },
     });
   });
@@ -278,9 +278,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
       path: { type: 'Path', segments:['ingredients'] },
       predicate: {
         type: 'Comparison',
-        path: { type: 'Path', segments:['notes'] },
+        left: { type: 'Path', segments:['notes'] },
         op: 'neq',
-        value: { type: 'NullLiteral' },
+        right: { type: 'NullLiteral' },
       },
     });
   });
@@ -461,15 +461,15 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
       children: [
         {
           type: 'Comparison',
-          path: { type: 'Path', segments: ['price'] },
+          left: { type: 'Path', segments: ['price'] },
           op: 'gt',
-          value: { type: 'NumberLiteral', value: 5 },
+          right: { type: 'NumberLiteral', value: 5 },
         },
         {
           type: 'Comparison',
-          path: { type: 'Path', segments: ['price'] },
+          left: { type: 'Path', segments: ['price'] },
           op: 'lte',
-          value: { type: 'NumberLiteral', value: 13 },
+          right: { type: 'NumberLiteral', value: 13 },
         },
       ],
     });
@@ -516,9 +516,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
       path: { type: 'Path', segments: ['ingredients'] },
       predicate: {
         type: 'Comparison',
-        path: { type: 'Path', segments: ['alcohol_content'] },
+        left: { type: 'Path', segments: ['alcohol_content'] },
         op: 'gt',
-        value: { type: 'NumberLiteral', value: 20 },
+        right: { type: 'NumberLiteral', value: 20 },
       },
     });
   });
@@ -567,9 +567,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
           path: { type: 'Path', segments: ['ingredients'] },
           predicate: {
             type: 'Comparison',
-            path: { type: 'Path', segments: ['alcohol_content'] },
+            left: { type: 'Path', segments: ['alcohol_content'] },
             op: 'gt',
-            value: { type: 'NumberLiteral', value: 5 },
+            right: { type: 'NumberLiteral', value: 5 },
           },
         },
         {
@@ -578,9 +578,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
           path: { type: 'Path', segments: ['ingredients'] },
           predicate: {
             type: 'Comparison',
-            path: { type: 'Path', segments: ['alcohol_content'] },
+            left: { type: 'Path', segments: ['alcohol_content'] },
             op: 'lte',
-            value: { type: 'NumberLiteral', value: 13 },
+            right: { type: 'NumberLiteral', value: 13 },
           },
         },
       ],
@@ -610,9 +610,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
           path: { type: 'Path', segments: ['ingredients'] },
           predicate: {
             type: 'Comparison',
-            path: { type: 'Path', segments: ['alcohol_content'] },
+            left: { type: 'Path', segments: ['alcohol_content'] },
             op: 'gt',
-            value: { type: 'NumberLiteral', value: 20 },
+            right: { type: 'NumberLiteral', value: 20 },
           },
         },
       ],
@@ -628,14 +628,14 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
       type: 'Or',
       children: [
         { type: 'Comparison',
-          path: { type: 'Path', segments: ['A'] }, 
+          left: { type: 'Path', segments: ['A'] }, 
           op: 'eq', 
-          value: { type: 'NullLiteral' }  
+          right: { type: 'NullLiteral' }  
         },
         { type: 'Comparison', 
-          path: { type: 'Path', segments: ['B'] }, 
+          left: { type: 'Path', segments: ['B'] }, 
           op: 'eq', 
-          value: { type: 'NullLiteral' } 
+          right: { type: 'NullLiteral' } 
         },
       ],
     });
@@ -647,8 +647,8 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
     expect(cir).toEqual({
       type: 'And',
       children: [
-        { type: 'Comparison', path: { type: 'Path', segments: ['A'] }, op: 'eq', value: { type: 'NullLiteral' }  },
-        { type: 'Comparison', path: { type: 'Path', segments: ['B'] }, op: 'eq', value: { type: 'NullLiteral' }  },
+        { type: 'Comparison', left: { type: 'Path', segments: ['A'] }, op: 'eq', right: { type: 'NullLiteral' }  },
+        { type: 'Comparison', left: { type: 'Path', segments: ['B'] }, op: 'eq', right: { type: 'NullLiteral' }  },
       ],
     });
   });
@@ -658,9 +658,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
     const cir = normalize(ast);
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments: ['A'] },
+      left: { type: 'Path', segments: ['A'] },
       op: 'neq',
-      value: { type: 'NullLiteral' },
+      right: { type: 'NullLiteral' },
     });
   });
 
@@ -692,9 +692,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
         type: 'Not',
         child: {
           type: 'Comparison',
-          path: { type: 'Path', segments: ['price'] },
+          left: { type: 'Path', segments: ['price'] },
           op: 'gt',
-          value: { type: 'NumberLiteral', value: 10 },
+          right: { type: 'NumberLiteral', value: 10 },
         },
       },
     });
@@ -709,9 +709,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
       path: { type: 'Path', segments: ['items'] },
       predicate: {
         type: 'Comparison',
-        path: { type: 'Path', segments: ['notes'] },
+        left: { type: 'Path', segments: ['notes'] },
         op: 'neq',
-        value: { type: 'NullLiteral' },
+        right: { type: 'NullLiteral' },
       },
     });
   });
@@ -740,13 +740,13 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
     expect(cir).toEqual({
       type: 'Or',
       children: [
-        { type: 'Comparison', path: { type: 'Path', segments: ['A'] }, op: 'neq', value: { type: 'NullLiteral' } },
-        { type: 'Comparison', path: { type: 'Path', segments: ['B'] }, op: 'neq', value: { type: 'NullLiteral' } },
+        { type: 'Comparison', left: { type: 'Path', segments: ['A'] }, op: 'neq', right: { type: 'NullLiteral' } },
+        { type: 'Comparison', left: { type: 'Path', segments: ['B'] }, op: 'neq', right: { type: 'NullLiteral' } },
         {
           type: 'And',
           children: [
-            { type: 'Comparison', path: { type: 'Path', segments: ['C'] }, op: 'neq', value: { type: 'NullLiteral' } },
-            { type: 'Comparison', path: { type: 'Path', segments: ['D'] }, op: 'neq', value: { type: 'NullLiteral' } },
+            { type: 'Comparison', left: { type: 'Path', segments: ['C'] }, op: 'neq', right: { type: 'NullLiteral' } },
+            { type: 'Comparison', left: { type: 'Path', segments: ['D'] }, op: 'neq', right: { type: 'NullLiteral' } },
           ],
         },
       ],
@@ -759,9 +759,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
     const cirOr = normalize(astOr);
     expect(cirOr).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments: ['A'] },
+      left: { type: 'Path', segments: ['A'] },
       op: 'neq',
-      value: { type: 'NullLiteral' },
+      right: { type: 'NullLiteral' },
     });
 
     // And(A) を明示的に作るため (A AND A) からの押し下げ・平坦化と単一化確認
@@ -770,8 +770,8 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
     expect(cirAnd).toEqual({
       type: 'And',
       children: [
-        { type: 'Comparison', path: { type: 'Path', segments: ['A'] }, op: 'neq', value: { type: 'NullLiteral' } },
-        { type: 'Comparison', path: { type: 'Path', segments: ['A'] }, op: 'neq', value: { type: 'NullLiteral' } },
+        { type: 'Comparison', left: { type: 'Path', segments: ['A'] }, op: 'neq', right: { type: 'NullLiteral' } },
+        { type: 'Comparison', left: { type: 'Path', segments: ['A'] }, op: 'neq', right: { type: 'NullLiteral' } },
       ],
     });
   });
@@ -804,7 +804,7 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
     expect(cir).toEqual({
       type: 'And',
       children: [
-        { type: 'Comparison', path: { type: 'Path', segments: ['A'] }, op: 'eq', value: { type: 'NullLiteral' } },
+        { type: 'Comparison', left: { type: 'Path', segments: ['A'] }, op: 'eq', right: { type: 'NullLiteral' } },
         {
           type: 'Quantified',
           quantifier: 'none', // NOT any(...) -> none(...)
@@ -833,16 +833,16 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
           path: { type: 'Path', segments: ['ingredients'] },
           predicate: {
             type: 'Comparison',
-            path: { type: 'Path', segments: ['alcohol_content'] },
+            left: { type: 'Path', segments: ['alcohol_content'] },
             op: 'gt',
-            value: { type: 'NumberLiteral', value: 10 },
+            right: { type: 'NumberLiteral', value: 10 },
           },
         },
         {
           type: 'Comparison',
-          path: { type: 'Path', segments: ['B'] },
+          left: { type: 'Path', segments: ['B'] },
           op: 'eq',
-          value: { type: 'NullLiteral' },
+          right: { type: 'NullLiteral' },
         },
       ],
     });
@@ -873,9 +873,9 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
       path: { type: 'Path', segments: ['ingredients'] },
       predicate: {
         type: 'Comparison',
-        path: { type: 'Path', segments: ['alcohol_content'] },
+        left: { type: 'Path', segments: ['alcohol_content'] },
         op: 'gt',
-        value: { type: 'NumberLiteral', value: 5 },
+        right: { type: 'NumberLiteral', value: 5 },
       },
     });
   });
@@ -897,7 +897,7 @@ it('[C-7] should normalize a ">" ComparisonExpression to a "gt" ComparisonNode',
             value: { type: 'StringLiteral', value: 'A' },
           },
         },
-        { type: 'Comparison', path: { type: 'Path', segments: ['A'] }, op: 'neq', value: { type: 'NullLiteral' } },
+        { type: 'Comparison', left: { type: 'Path', segments: ['A'] }, op: 'neq', right: { type: 'NullLiteral' } },
       ],
     });
   });
@@ -913,9 +913,9 @@ describe("normalize - D-6 NOT(Comparison) inversion", () => {
     const cir = normalize(ast);
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments: ['category'] },
+      left: { type: 'Path', segments: ['category'] },
       op: 'neq',
-      value: { type: 'StringLiteral', value: 'A' },
+      right: { type: 'StringLiteral', value: 'A' },
     });
   });
 
@@ -924,9 +924,9 @@ describe("normalize - D-6 NOT(Comparison) inversion", () => {
     const cir = normalize(ast);
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments: ['notes'] },
+      left: { type: 'Path', segments: ['notes'] },
       op: 'eq',
-      value: { type: 'NullLiteral' },
+      right: { type: 'NullLiteral' },
     });
   });
 
@@ -935,9 +935,9 @@ describe("normalize - D-6 NOT(Comparison) inversion", () => {
     const cir = normalize(ast);
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments: ['price'] },
+      left: { type: 'Path', segments: ['price'] },
       op: 'lte',
-      value: { type: 'NumberLiteral', value: 10 },
+      right: { type: 'NumberLiteral', value: 10 },
     });
   });
 
@@ -946,9 +946,9 @@ describe("normalize - D-6 NOT(Comparison) inversion", () => {
     const cir = normalize(ast);
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments: ['price'] },
+      left: { type: 'Path', segments: ['price'] },
       op: 'lt',
-      value: { type: 'NumberLiteral', value: 10 },
+      right: { type: 'NumberLiteral', value: 10 },
     });
   });
 
@@ -957,9 +957,9 @@ describe("normalize - D-6 NOT(Comparison) inversion", () => {
     const cir = normalize(ast);
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments: ['price'] },
+      left: { type: 'Path', segments: ['price'] },
       op: 'gte',
-      value: { type: 'NumberLiteral', value: 10 },
+      right: { type: 'NumberLiteral', value: 10 },
     });
   });
 
@@ -968,9 +968,9 @@ describe("normalize - D-6 NOT(Comparison) inversion", () => {
     const cir = normalize(ast);
     expect(cir).toEqual({
       type: 'Comparison',
-      path: { type: 'Path', segments: ['price'] },
+      left: { type: 'Path', segments: ['price'] },
       op: 'gt',
-      value: { type: 'NumberLiteral', value: 10 },
+      right: { type: 'NumberLiteral', value: 10 },
     });
   });
 
@@ -983,15 +983,15 @@ describe("normalize - D-6 NOT(Comparison) inversion", () => {
       children: [
         {
           type: 'Comparison',
-          path: { type: 'Path', segments: ['A'] },
+          left: { type: 'Path', segments: ['A'] },
           op: 'eq',
-          value: { type: 'NullLiteral' },
+          right: { type: 'NullLiteral' },
         },
         {
           type: 'Comparison',
-          path: { type: 'Path', segments: ['price'] },
+          left: { type: 'Path', segments: ['price'] },
           op: 'lte',
-          value: { type: 'NumberLiteral', value: 10 },
+          right: { type: 'NumberLiteral', value: 10 },
         },
       ],
     });
@@ -1007,9 +1007,9 @@ describe("normalize - D-6 NOT(Comparison) inversion", () => {
       path: { type: 'Path', segments: ['ingredients'] },
       predicate: {
         type: 'Comparison',
-        path: { type: 'Path', segments: ['alcohol_content'] },
+        left: { type: 'Path', segments: ['alcohol_content'] },
         op: 'gt',
-        value: { type: 'NumberLiteral', value: 10 },
+        right: { type: 'NumberLiteral', value: 10 },
       },
     });
   });

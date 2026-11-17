@@ -7,7 +7,7 @@
 
 ---
 
-**cirquery** (Canonical Intermediate Representation Query) is a TypeScript library that provides a human-friendly query DSL for filtering JSON data, with a common intermediate representation (CIR) that can be adapted to multiple backends.
+**cirquery** (Canonical Intermediate Representation Query) is a TypeScript library that compiles a human-friendly filter DSL into a canonical intermediate representation (CIR) — a normalized, backend-agnostic form of your query. The same query runs in memory, and adapts to SQLite, MongoDB, and Elasticsearch, with identical results where it matters: a conformance test suite proves the in-memory evaluator and the SQLite adapter return exactly the same rows for the same queries.
 
 ## 🔬 JSON Playground
 
@@ -20,10 +20,12 @@ Drag and drop your JSON files and execute queries in real-time.
 
 ## ✨ Features
 
-- **Human-Readable Query Language**: Write intuitive search queries with natural syntax
-- **Common Intermediate Representation (CIR)**: Normalize queries into a backend-agnostic format for reusability
+- **Human-Readable Query Language**: Write intuitive search queries with natural syntax — the same text a person types into a search box, or an LLM generates
+- **Common Intermediate Representation (CIR)**: Queries are normalized (De Morgan push-down, flattening, canonical forms), so two differently-written queries with the same meaning produce the same CIR — hashable, cacheable, and validatable against a closed operator set before anything touches a database
+- **Arithmetic in Filters**: `price * qty >= 1000`, `(price + tax) / 2 < 500`, `qty % 3 = 0`, even field-to-field comparisons (`price > cost`)
+- **Backend Adapters**: Reference adapters in this repo compile CIR to SQLite (JSON document columns), MongoDB filters, and Elasticsearch bool/filter queries — relevance scoring is deliberately out of scope
+- **Conformance-Tested**: The same fixture data and query corpus run against the in-memory evaluator and a real SQLite database, and must return identical results
 - **Type-Safe**: Fully typed TypeScript implementation
-- **Extensible**: Easily add custom adapters or field search capabilities
 - **Multi-Language Support**: Built-in accent folding and case normalization
 
 ## 🚀 Installation
@@ -80,6 +82,14 @@ Use `NOT` for negation and parentheses `()` for precedence:
 
 `NOT (year >= 2000)`  
 `is_alcoholic = false OR (type = "spirit" AND NOT is_carbonated = true)`
+
+#### Arithmetic Filters
+
+Comparisons can compute on both sides:
+
+`price * qty >= 1000`  
+`(unit_price + tax) * qty < 5000`  
+`qty % 3 = 0 AND price > cost`
 
 ### JavaScript/TypeScript Usage
 
@@ -219,6 +229,22 @@ Note: This includes all source files. For production-like testing, use Method A.
 3. **Normalize**: Transform AST into Common Intermediate Representation (CIR)
 4. **Evaluator/Adapters**: Execute CIR (JavaScript evaluation, DB conversion, etc.)
 
+Adapters live in this repository as reference implementations (`src/adapters/`) and are intentionally not part of the published package API — see `docs/dev/adapters.md`.
+
+### Why an intermediate representation?
+
+Standards and frameworks already occupy parts of this space, at a different weight class:
+
+| | Form | Scope | Weight |
+|---|---|---|---|
+| **cirquery** | Text DSL → normalized JSON IR | Filtering (incl. arithmetic), in-memory + SQL + search backends | An npm library that runs in the browser |
+| OData `$filter` | URL query option | Entity services over REST; rich operators, but protocol-bound and unevenly implemented | A service framework |
+| Apache Calcite | SQL → relational algebra | Full query planning/optimization across data sources | JVM infrastructure |
+| Substrait | Protobuf plan spec | Analytics-engine plan exchange; no human-facing syntax | Engine internals |
+| JsonLogic | JSON rules | In-memory rule evaluation only | A rule format |
+
+cirquery's seat is the one left open: a small, canonical, testable filter IR for app developers — the thing a query builder UI serializes to, an LLM can safely generate, and a saved search can be re-executed against whichever backend the app grows into.
+
 ## 🎯 Roadmap
 
 ### v0.1 (Completed)
@@ -227,13 +253,19 @@ Note: This includes all source files. For production-like testing, use Method A.
 - [x] JavaScript evaluator
 - [x] Accent folding & case normalization
 
-### v0.2 (Current)
+### v0.2 (Completed)
 - [x] Multi-level array path shorthand support
 
-### v0.3 (Planned)
+### v0.3 (Completed)
+- [x] Arithmetic expressions in filters (`+ - * / %`, unary minus, field-to-field comparisons)
+- [x] Backend adapters: SQLite (generic JSON-document model), MongoDB, Elasticsearch
+- [x] Cross-backend conformance test suite (evaluator vs. real SQLite execution)
+- [x] Full-field search via configured targets (`textSearchTargets` option with single-argument text functions)
+
+### Future
 - [ ] Explicit OR/AND in ValueList
-- [ ] Full-field search (ANYFIELD)
-- [ ] Additional backend adapters (MongoDB, SQLite)
+- [ ] Projection / sorting in CIR
+- [ ] Adapters as separate packages (`cirquery-adapter-*`) if demand appears
 
 ## 🤝 Contributing
 

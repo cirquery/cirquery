@@ -73,10 +73,19 @@ type Expression =
   | LogicalExpression
   | UnaryExpression
   | ComparisonExpression
+  | ArithmeticExpression
+  | NegateExpression
   | TextShorthandExpression
   | CallExpression
   | GroupExpression
   | ValueListExpression;
+
+// 比較の辺になれる式（v0.3）
+type OperandExpression =
+  | PathNode
+  | LiteralNode
+  | ArithmeticExpression
+  | NegateExpression;
 
 // A AND B, A OR B
 interface LogicalExpression extends AstNode {
@@ -93,12 +102,26 @@ interface UnaryExpression extends AstNode {
   argument: Expression;
 }
 
-// alcohol_content = 40
+// alcohol_content = 40 / price * qty >= 1000（v0.3で辺を一般化）
 interface ComparisonExpression extends AstNode {
   type: 'ComparisonExpression';
   operator: '=' | '!=' | '>' | '>=' | '<' | '<=';
-  left: PathNode;
-  right: LiteralNode;
+  left: OperandExpression;
+  right: OperandExpression;
+}
+
+// 演算式（v0.3）: price * qty など。左結合の二項木
+interface ArithmeticExpression extends AstNode {
+  type: 'ArithmeticExpression';
+  operator: '+' | '-' | '*' | '/' | '%';
+  left: OperandExpression;
+  right: OperandExpression;
+}
+
+// 単項マイナス（v0.3）。数値リテラルへの適用はビジターが負数リテラルに畳む
+interface NegateExpression extends AstNode {
+  type: 'NegateExpression';
+  argument: OperandExpression;
 }
 
 // name:"ジン", alcohol_content:>20, year:20
@@ -174,12 +197,34 @@ interface NotNode extends CirNode {
   child: CirNode;
 }
 
+// 式（v0.3）: 比較の辺になれる値の木
+type CirExpr =
+  | Path
+  | Literal
+  | ArithmeticNode
+  | NegNode;
+
+// 演算式（v0.3）
+interface ArithmeticNode extends CirNode {
+  type: 'Arithmetic';
+  op: 'add' | 'sub' | 'mul' | 'div' | 'mod';
+  left: CirExpr;
+  right: CirExpr;
+}
+
+// 単項マイナス（v0.3）
+interface NegNode extends CirNode {
+  type: 'Neg';
+  arg: CirExpr;
+}
+
 // 比較: =, !=, >, ...
+// v0.3: path/value 形式から left/right の式形式に統一（破壊的変更）
 interface ComparisonNode extends CirNode {
   type: 'Comparison';
-  path: Path;
+  left: CirExpr;
   op: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte';
-  value: Literal;
+  right: CirExpr;
 }
 //正規化注記: NOT(Comparison) はnormalizationのルールDに従い演算子反転で NotNode が除去される場合がある（例: NOT(price > 10) → price <= 10）。
 
@@ -203,6 +248,13 @@ interface QuantifiedNode extends CirNode {
 
 **設計注記**:  
 - CIRのPathは `type: 'Path'` を持ちます。これは合併型判定の安定化・AST/CIR境界の明確化・正規化時のensure系（ensurePath/ensureStringLiteral/ensureCirNode）の堅牢化のための設計判断です。
+
+- **比較の意味論（v0.3で明文化）**:
+  - フィールドの欠落（パス解決が `undefined`）と `null` は、比較では同一の「値なし」として扱います（SQL の `IS` と同じ規則）。これにより `path != null` は欠落時に偽（truthy チェックとして正しく働く）、`path != "x"` は欠落時に真となります。
+  - 演算（Arithmetic）のオペランドが欠落を含む場合、その演算は「値なし」となり、比較は偽になります。ゼロ除算・ゼロ剰余も「値なし」です。数値でない値への演算は評価エラー（`E_EVAL_TYPE_MISMATCH`）となります。
+  - テキスト演算の対象が文字列の配列の場合、「いずれかの要素が一致する」（any）として評価します。
+
+- **配列パスのラップ規則（v0.3で一般化）**: 比較の式に現れるパスがすべて同じ先頭セグメントを持ち長さ2以上なら、その比較は `Quantified(any)` にラップされ、パスは要素相対に付け替えられます。先頭が混在する式はラップされません。
 
 - **評価オプションによる前処理**
   - `TextNode`の比較は、評価時にオプション `ignoreCase` と `foldDiacritics` の前処理を受ける。`foldDiacritics=true` の場合、文字列は比較前に NFD 正規化を行い、U+0300–U+036F の結合ダイアクリティカルマークを除去する。  
@@ -230,6 +282,10 @@ interface QuantifiedNode extends CirNode {
 
 ### 付録: 変更履歴（抜粋）
 
+- 2026-11 (v0.3): Comparison を `left: CirExpr / right: CirExpr` に統一し、演算式（Arithmetic / Neg）を導入
+  - 目的: 演算を含むフィルタ（例: `price * qty > 1000`）を CIR で表現するため。path/value 専用形のままでは比較ノードが2種類に分裂し、評価器・アダプタが二重化する
+  - 影響: CIR の JSON 形状が変わる破壊的変更。旧形式（path/value）との互換は持たない
+  - 同時に意味論を明文化: 欠落と null は比較では同一の「値なし」、テキスト演算は配列フィールドに any として作用、配列パスのラップ規則を式全体へ一般化
 - 2025-08: CIRのPathを `{ type: 'Path', segments: string[] }` に変更
   - 目的: 判別可能な合併型の安定化、AST/CIRの責務分離、正規化時のensure系での堅牢な型判定
   - 影響: テストの期待値（CIRサンプル）における `path` を `{ segments: [...] }` から `{ type: 'Path', segments: [...] }` に更新

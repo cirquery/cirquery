@@ -2,6 +2,28 @@
 
 本書は、cirquery の中間表現（CIR）を任意のバックエンド（DB/検索エンジン等）のクエリへ写像する「アダプタ」設計の指針を定義します。cirquery本体の責務は DSL→AST→CIR とインメモリ Evaluator までであり、adapters は任意の外部連携層（オプション）です。
 
+## 実装状況（v0.3）
+
+| アダプタ | 実装 | 検証 |
+|---|---|---|
+| SQLite（JSONドキュメント列モデル） | `src/adapters/sqlite/`（`toSqliteQuery`） | 適合テストでインメモリ評価器と結果一致を保証（実DB実行） |
+| MongoDB | `src/adapters/mongodb/`（`toMongoFilter`） | 生成フィルタの構造テスト |
+| Elasticsearch | `src/adapters/elasticsearch/`（`toElasticsearchQuery`） | 生成クエリの構造テスト |
+
+### SQLite アダプタの写像（要点）
+
+- パス → `json_extract(列, $."a"."b")`（パス文字列もパラメータ化）。量化子 → `json_each` + `EXISTS`。`all` は「要素が存在する AND 述語を満たさない要素が存在しない」。
+- eq/neq → NULL 安全な `IS` / `IS NOT`（評価器の「欠落と null は同一の値なし」規則と一致させるため）。
+- テキスト → 文字列フィールドは `instr` / `substr`、配列フィールドは `json_each` の要素照合との OR（評価器の any 規則に対応）。型判定は `json_type`。
+- 演算 → SQL の算術。div は `* 1.0` で実数除算に寄せる。ゼロ除算は NULL になり評価器の「値なし」と一致する。
+- NOT と量化子の述語では `COALESCE(..., 0)` で NULL を偽に寄せる。
+
+### 既知の意味差（アダプタ共通の注意）
+
+- **SQLite**: 「フィールド欠落」と JSON `null` はどちらも SQL NULL になり区別できない（比較の等値では評価器も同一視するため実害は小さい）。`foldDiacritics` は未対応（AdapterError）。実数同士の剰余（`%`）は SQLite が整数化するため、評価器と差が出る場合がある。順序比較の右辺が `null` の場合、評価器は型不一致エラーだが SQLite は単に一致しない。
+- **MongoDB**: `eq` の `null` は欠落フィールドにも一致する（MongoDB の仕様）。正規表現によるテキスト照合は部分文字列一致と等価だが、アンカーやエスケープの扱いはアダプタの実装に従う。
+- **Elasticsearch**: 関連度（スコア）は扱わない（全て filter 文脈）。`match_phrase` の一致はインデックス側のアナライザに依存し、評価器の部分文字列一致と完全には一致しない。量化子は nested 型フィールドの指定がある場合のみ nested クエリになり、それ以外は平坦化されるため要素またぎの誤検出がありうる。
+
 ## 目的と方針
 
 - 責務分離

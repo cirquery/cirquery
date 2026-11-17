@@ -80,6 +80,40 @@ export const Colon = createToken({
   start_chars_hint: [':'],
 });
 
+// 演算式（v0.3）: + - * / %
+// Minus は単独トークンとして扱い、負数はパーサー側で組み立てる
+// （NumberLiteral 側に -? を含めると `a - 5` の減算と判別できないため）。
+export const Plus = createToken({
+  name: 'Plus',
+  pattern: /\+/,
+  categories: Operator,
+  start_chars_hint: ['+'],
+});
+export const Minus = createToken({
+  name: 'Minus',
+  pattern: /-/,
+  categories: Operator,
+  start_chars_hint: ['-'],
+});
+export const Star = createToken({
+  name: 'Star',
+  pattern: /\*/,
+  categories: Operator,
+  start_chars_hint: ['*'],
+});
+export const Slash = createToken({
+  name: 'Slash',
+  pattern: /\//,
+  categories: Operator,
+  start_chars_hint: ['/'],
+});
+export const Percent = createToken({
+  name: 'Percent',
+  pattern: /%/,
+  categories: Operator,
+  start_chars_hint: ['%'],
+});
+
 export const LParen = createToken({
   name: 'LParen',
   pattern: /\(/,
@@ -135,10 +169,11 @@ export const StringLiteral = createToken({
 */
 
 
-// NumberLiteral は整数/小数/指数をサポート。
+// NumberLiteral は整数/小数/指数をサポート（符号なし）。
+// 負数は Minus トークン + NumberLiteral をパーサー/ビジターで組み立てる（v0.3）。
 export const NumberLiteral = createToken({
   name: 'NumberLiteral',
-  pattern: /-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/,
+  pattern: /(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/,
   categories: Literal,
 });
 
@@ -173,7 +208,7 @@ export const allTokens = [
   GreaterThanOrEqual, LessThanOrEqual, NotEquals,
 
   // Operators (single-char)
-  GreaterThan, LessThan, Equals, Colon,
+  GreaterThan, LessThan, Equals, Colon, Plus, Minus, Star, Slash, Percent,
 
   // Separators
   LParen, RParen, Comma, Dot,

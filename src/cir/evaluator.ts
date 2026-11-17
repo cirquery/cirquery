@@ -1,6 +1,7 @@
 // src/cir/evaluator.ts
 import type {
     CirNode,
+    CirExpr,
     AndNode,
     OrNode,
     NotNode,
@@ -104,24 +105,80 @@ function normalizeTextInput(s: string, opts: InternalOptions): string {
   }
   
   function evalComparison(node: ComparisonNode, record: any): boolean {
-    const left = getByPath(record, node.path);
-    const right = literalToJs(node.value);
-  
+    const left = evalExpr(node.left, record);
+    const right = evalExpr(node.right, record);
+
     switch (node.op) {
       case 'eq':
         return eq(left, right);
       case 'neq':
         return !eq(left, right);
       case 'gt':
-        return cmp('gt', left, right, (a, b) => a > b);
+        return cmpSides('gt', left, right, (a, b) => a > b);
       case 'gte':
-        return cmp('gte', left, right, (a, b) => a >= b);
+        return cmpSides('gte', left, right, (a, b) => a >= b);
       case 'lt':
-        return cmp('lt', left, right, (a, b) => a < b);
+        return cmpSides('lt', left, right, (a, b) => a < b);
       case 'lte':
-        return cmp('lte', left, right, (a, b) => a <= b);
+        return cmpSides('lte', left, right, (a, b) => a <= b);
       default:
         throw new Error('Unknown comparison op: ' + (node as any).op);
+    }
+  }
+
+  // 順序比較の前段ガード: どちらかの辺が「値なし」(undefined) なら比較は偽。
+  // null は従来どおり cmp 側の規則に委ねる。
+  function cmpSides(
+    op: 'gt' | 'gte' | 'lt' | 'lte',
+    left: any,
+    right: any,
+    f: (x: number | string, y: number | string) => boolean
+  ): boolean {
+    if (left === undefined || right === undefined) return false;
+    return cmp(op, left, right, f);
+  }
+
+  /**
+   * 式（CirExpr）の評価。意味論（docs/spec/ast-cir.md / 設計メモ D-3）:
+   * - パスが欠落したオペランドを含む演算は undefined（値なし）を返す。
+   * - ゼロ除算・ゼロ剰余は undefined を返す（Infinity/NaN にしない）。
+   * - 数値でない値への演算は E_EVAL_TYPE_MISMATCH。
+   */
+  function evalExpr(expr: CirExpr, record: any): any {
+    switch (expr.type) {
+      case 'Path':
+        return getByPath(record, expr);
+      case 'StringLiteral':
+      case 'NumberLiteral':
+      case 'BooleanLiteral':
+      case 'NullLiteral':
+        return literalToJs(expr);
+      case 'Neg': {
+        const v = evalExpr(expr.arg, record);
+        if (v === undefined) return undefined;
+        if (typeof v !== 'number') {
+          failTypeMismatch('neg', 'number', typeof v);
+        }
+        return -v;
+      }
+      case 'Arithmetic': {
+        const l = evalExpr(expr.left, record);
+        const r = evalExpr(expr.right, record);
+        if (l === undefined || r === undefined) return undefined;
+        if (typeof l !== 'number' || typeof r !== 'number') {
+          failTypeMismatch(expr.op, 'number', `${typeof l}/${typeof r}`);
+        }
+        switch (expr.op) {
+          case 'add': return l + r;
+          case 'sub': return l - r;
+          case 'mul': return l * r;
+          case 'div': return r === 0 ? undefined : l / r;
+          case 'mod': return r === 0 ? undefined : l % r;
+          default: throw new Error('Unknown arithmetic op: ' + (expr as any).op);
+        }
+      }
+      default:
+        throw new Error('Unsupported CIR expr type in evaluator: ' + (expr as any).type);
     }
   }
 
@@ -135,16 +192,24 @@ function normalizeTextInput(s: string, opts: InternalOptions): string {
   function evalText(node: TextNode, record: any, opts: InternalOptions): boolean {
     const value = getByPath(record, node.path);
     const needle = (node.value as StringLiteral).value;
-      if (typeof value !== 'string') return false;
-  
-    // 共通前処理（foldDiacritics/ignoreCase を順に適用）
-    const a = normalizeTextInput(value, opts);
-    const b = normalizeTextInput(needle, opts);
 
-    if (node.op === 'contains') return a.includes(b);
-    if (node.op === 'startsWith') return a.startsWith(b);
-    if (node.op === 'endsWith') return a.endsWith(b);
-    throw new Error('Unknown text op: ' + (node as any).op);
+    // 配列フィールドは「いずれかの要素が一致」（量化子と同じ any の規則）。
+    // これにより tags: "gin" と items.name: "gin" が同じ直感で書ける。
+    if (Array.isArray(value)) {
+      return value.some((el) => typeof el === 'string' && matchText(el, needle, node.op, opts));
+    }
+    if (typeof value !== 'string') return false;
+    return matchText(value, needle, node.op, opts);
+  }
+
+  // 文字列同士のテキスト照合（foldDiacritics/ignoreCase の前処理を両側に適用）
+  function matchText(haystack: string, needle: string, op: TextNode['op'], opts: InternalOptions): boolean {
+    const a = normalizeTextInput(haystack, opts);
+    const b = normalizeTextInput(needle, opts);
+    if (op === 'contains') return a.includes(b);
+    if (op === 'startsWith') return a.startsWith(b);
+    if (op === 'endsWith') return a.endsWith(b);
+    throw new Error('Unknown text op: ' + op);
   }
   
   function evalQuantified(node: QuantifiedNode, record: any, opts:InternalOptions): boolean {
@@ -216,8 +281,13 @@ function normalizeTextInput(s: string, opts: InternalOptions): string {
   
   // 比較ヘルパ
   function eq(a: any, b: any): boolean {
-    // null 同士は等価、型違いは厳密比較準拠
-    if (a === null && b === null) return true;
+    // 欠落（undefined）と null は、比較では同一の「値なし」として扱う。
+    // これは SQL の IS と同じ規則で、アダプタとの意味一致の要になる。
+    // 例: フィールド欠落時の `path != null` は偽（= truthy チェックとして正しく働く）、
+    //     `path != "x"` は真（値なしは "x" ではない）。
+    const aNullish = a === null || a === undefined;
+    const bNullish = b === null || b === undefined;
+    if (aNullish || bNullish) return aNullish && bNullish;
     if (Number.isNaN(a) || Number.isNaN(b)) return false;
     return a === b;
   }

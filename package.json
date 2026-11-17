@@ -1,7 +1,7 @@
 {
   "name": "cirquery",
-  "version": "0.2.2",
-  "description": "Core Common/Intermediate Representation for transforming human-friendly query DSLs to backend adapters.",
+  "version": "0.3.0",
+  "description": "A human/LLM-friendly filter DSL compiled to a canonical intermediate representation (CIR), with an in-memory evaluator and adapters for SQLite, MongoDB and Elasticsearch.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -25,9 +25,9 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write src",
-    "play:dev": "vite --config examples/playground-json/vite.config.ts",
-    "play:build": "vite build --config examples/playground-json/vite.config.ts",
-    "play:preview": "vite preview --config examples/playground-json/vite.config.ts"
+    "play:dev": "npm run build && npm --prefix examples/playground-json install --no-package-lock --no-audit --no-fund && npm --prefix examples/playground-json run play:dev",
+    "play:build": "npm run build && npm --prefix examples/playground-json install --no-package-lock --no-audit --no-fund && npm --prefix examples/playground-json run play:build",
+    "play:preview": "npm --prefix examples/playground-json run play:preview"
   },
   "repository": {
     "type": "git",
