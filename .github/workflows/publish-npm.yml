@@ -5,6 +5,11 @@ on:
     # バージョンアップ時に手動で作成するタグ(push tag)
     tags:
       - 'v*.*.*'   # セマンティックバージョンのタグを検知して自動実行
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # trusted publishing (OIDC) に必須
 
 jobs:
   build-and-publish:
@@ -12,13 +17,13 @@ jobs:
     steps:
       # ソースコードをチェックアウト
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Node.js をセットアップ
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
       # 依存関係インストール
@@ -33,8 +38,10 @@ jobs:
       - name: Build cirquery
         run: npm run build
 
-      # npm 公開
+      # trusted publishing には npm 11.5.1+ が必要
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      # npm 公開（trusted publishing: トークンは使わない）
       - name: Publish to npm
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
